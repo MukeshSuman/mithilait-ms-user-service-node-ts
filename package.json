@@ -1,0 +1,38 @@
+{
+	"name": "user-microservice",
+	"version": "1.0.0",
+	"description": "User microservice with Node.js, TypeScript, and MongoDB",
+	"main": "dist/server.js",
+	"scripts": {
+		"start": "node dist/server.js",
+		"dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+		"build": "tsc",
+		"test": "jest",
+		"swagger": "tsoa spec-and-routes"
+	},
+	"dependencies": {
+		"bcrypt": "^5.1.0",
+		"dotenv": "^16.0.3",
+		"express": "^4.18.2",
+		"joi": "^17.13.3",
+		"jsonwebtoken": "^9.0.0",
+		"mongoose": "^7.0.3",
+		"swagger-ui-express": "^5.0.1",
+		"tsoa": "^5.1.1",
+		"winston": "^3.8.2"
+	},
+	"devDependencies": {
+		"@types/bcrypt": "^5.0.0",
+		"@types/express": "^4.17.17",
+		"@types/jest": "^29.5.0",
+		"@types/jsonwebtoken": "^9.0.1",
+		"@types/node": "^18.15.11",
+		"@types/supertest": "^2.0.12",
+		"@types/swagger-ui-express": "^4.1.6",
+		"jest": "^29.5.0",
+		"supertest": "^6.3.3",
+		"ts-jest": "^29.1.0",
+		"ts-node-dev": "^2.0.0",
+		"typescript": "^5.0.4"
+	}
+}
