@@ -128,3 +128,9 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Generated Swagger file
+public/swagger.json
+
+# TSOA generated routes
+src/routes/routes.ts
