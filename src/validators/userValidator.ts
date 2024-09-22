@@ -3,6 +3,8 @@ import { UserRole } from '../models/userModel';
 
 export const createUserSchema = Joi.object({
     username: Joi.string().required(),
+    firstName: Joi.string().required(),
+    lastName: Joi.string().required(),
     email: Joi.string().email().required(),
     password: Joi.string().min(6).required(),
     role: Joi.string().valid(...Object.values(UserRole)).required(),
@@ -10,6 +12,8 @@ export const createUserSchema = Joi.object({
 
 export const updateUserSchema = Joi.object({
     username: Joi.string(),
+    firstName: Joi.string(),
+    lastName: Joi.string(),
     email: Joi.string().email(),
     password: Joi.string().min(6),
     role: Joi.string().valid(...Object.values(UserRole)),

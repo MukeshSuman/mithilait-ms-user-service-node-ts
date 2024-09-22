@@ -7,6 +7,8 @@ import { IUser, UserRole } from '../models/userModel';
 
 interface UserCreationParams {
     username: string;
+    firstName: string;
+    lastName: string;
     email: string;
     password: string;
     role: UserRole;
@@ -14,6 +16,8 @@ interface UserCreationParams {
 
 interface UserUpdateParams {
     username?: string;
+    firstName: string;
+    lastName: string;
     email?: string;
     password?: string;
     role?: UserRole;

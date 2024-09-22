@@ -6,13 +6,12 @@
 		"outputDirectory": "public",
 		"specVersion": 3,
 		"securityDefinitions": {
-			"bearerAuth": {
+			"jwt": {
 				"type": "http",
 				"scheme": "bearer",
 				"bearerFormat": "JWT"
 			}
-		},
-		"security": [{ "bearerAuth": [] }]
+		}
 	},
 	"routes": {
 		"routesDir": "src/routes",

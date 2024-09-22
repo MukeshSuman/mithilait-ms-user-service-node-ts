@@ -10,10 +10,38 @@ import { errorHandler } from "../middlewares/errorHandler";
 const router = express.Router();
 const userController = new UserController();
 
-router.post('/', authMiddleware([UserRole.Admin]), validate(createUserSchema), (req, res) => userController.createUser(req.body));
-// router.put('/:userId', authMiddleware([UserRole.Admin]), validate(updateUserSchema), userController.updateUser);
-router.delete('/:userId', authMiddleware([UserRole.Admin]), userController.deleteUser);
-router.get('/:userId', authMiddleware([UserRole.Admin, UserRole.Teacher, UserRole.Student]), userController.getUser);
+router.post('/', authMiddleware([UserRole.Admin]), validate(createUserSchema), async (req, res, next) => {
+    try {
+        const result = await userController.createUser(req.body);
+        res.json(result);
+    } catch (error: ApiError | any) {
+        errorHandler(error, req, res, next);
+    }
+});
+router.put('/:userId', authMiddleware([UserRole.Admin]), validate(updateUserSchema), async (req, res, next) => {
+    try {
+        const result = await userController.updateUser(req.params.userId, req.body);
+        res.json(result);
+    } catch (error: ApiError | any) {
+        errorHandler(error, req, res, next);
+    }
+});
+router.delete('/:userId', authMiddleware([UserRole.Admin]), async (req, res, next) => {
+    try {
+        const result = await userController.deleteUser(req.params.userId);
+        res.json(result);
+    } catch (error: ApiError | any) {
+        errorHandler(error, req, res, next);
+    }
+});
+router.get('/:userId', authMiddleware([UserRole.Admin, UserRole.Teacher, UserRole.Student]), async (req, res, next) => {
+    try {
+        const result = await userController.getUser(req.params.userId);
+        res.json(result);
+    } catch (error: ApiError | any) {
+        errorHandler(error, req, res, next);
+    }
+});
 router.get('/', authMiddleware([UserRole.Admin]), async (req, res, next) => {
     try {
         const { pageNumber = 1, pageSize = 20 } = req.query;
@@ -33,7 +61,21 @@ router.post('/login', validate(loginSchema), async (req, res, next) => {
         errorHandler(error, req, res, next);
     }
 });
-router.post('/refresh-token', userController.refreshToken);
-router.post('/logout', authMiddleware(), userController.logout);
+router.post('/refresh-token', async (req, res, next) => {
+    try {
+        const result = await userController.refreshToken(req.body);
+        res.json(result);
+    } catch (error: ApiError | any) {
+        errorHandler(error, req, res, next);
+    }
+});
+router.post('/logout', authMiddleware(), async (req, res, next) => {
+    try {
+        const result = await userController.logout(req);
+        res.json(result);
+    } catch (error: ApiError | any) {
+        errorHandler(error, req, res, next);
+    }
+});
 
 export { router as userRouter };

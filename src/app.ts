@@ -16,8 +16,14 @@ app.use(express.json());
 connectDB();
 
 // Swagger documentation
+const options = {
+    swaggerOptions: {
+        persistAuthorization: true
+    }
+};
+
 app.use('/docs', swaggerUi.serve, async (_req: express.Request, res: express.Response) => {
-    return res.send(swaggerUi.generateHTML(await import('../public/swagger.json')));
+    return res.send(swaggerUi.generateHTML(await import('../public/swagger.json'), options));
 });
 
 // Routes

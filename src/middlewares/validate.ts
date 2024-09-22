@@ -7,7 +7,11 @@ export const validate = (schema: Schema) => {
         const { error } = schema.validate(req.body);
         if (error) {
             const errorMessage = error.details.map((detail) => detail.message).join(', ');
-            return next(new ApiError(400, errorMessage));
+            return next(new ApiError({
+                httpStatusCode: 400,
+                message: errorMessage,
+                code: 'VALIDATION_ERROR'
+            }));
         }
         next();
     };

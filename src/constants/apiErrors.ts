@@ -53,5 +53,15 @@ export const ApiErrors = {
         code: 'INVALID_REFRESH_TOKEN',
         message: 'Refresh token either invalid or expired.',
         httpStatusCode: 401,
+    },
+    NoTokenProvided: {
+        code: 'NO_TOKEN_PROVIDED',
+        message: 'No token provided.',
+        httpStatusCode: 401,
+    },
+    InsufficientPermissions: {
+        code: 'INSUFFICIENT_PERMISSIONS',
+        message: 'Insufficient permissions.',
+        httpStatusCode: 403,
     }
 };
