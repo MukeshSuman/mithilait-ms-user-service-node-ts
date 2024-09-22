@@ -5,12 +5,38 @@ import { userRouter } from './routes/userRoutes';
 import { errorHandler } from './middlewares/errorHandler';
 import { connectDB } from './config/database';
 import { logger } from './config/logger';
+import cors from 'cors';
+import { requestLogger } from "./middlewares";
 
 config();
 
 const app = express();
 
+// CORS Configuration
+const corsOptions: cors.CorsOptions = {
+    origin: (origin, callback) => {
+        logger.info(`Request from origin: ${origin}`);
+        const allowedOrigins = process.env.ALLOWED_ORIGINS
+            ? process.env.ALLOWED_ORIGINS.split(',')
+            : ['http://localhost:3000'];
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            logger.warn(`CORS blocked request from origin: ${origin}`);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+    maxAge: 600 // 10 minutes
+};
+
+app.use(cors(corsOptions));
+
 app.use(express.json());
+
+app.use(requestLogger);
 
 // Connect to MongoDB
 connectDB();
