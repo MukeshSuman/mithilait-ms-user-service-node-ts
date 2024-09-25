@@ -4,6 +4,7 @@ import { PaginationOptions, PaginationResult } from '../utils/pagination';
 import { generateToken, verifyToken } from '../utils/jwtUtils';
 import { IUserService, IUserWithToken } from "../interfaces/IUserService";
 import { ApiErrors } from "../constants";
+import mongoose from "mongoose";
 
 export class UserService implements IUserService {
     async createUser(userData: Partial<IUser>, currUser?: IUser): Promise<IUser> {
@@ -11,10 +12,11 @@ export class UserService implements IUserService {
         if (userData.role === UserRole.Admin) throw new ApiError(ApiErrors.InsufficientPermissions);
         if (userData?.role === UserRole.Teacher && currUser?.role !== UserRole.Admin) throw new ApiError(ApiErrors.InsufficientPermissions);
         let schoolId = currUser?.schoolId;
+        const currUserId = new mongoose.Types.ObjectId(currUser?.id);
         if (currUser?.role === UserRole.Admin) {
-            schoolId = userData?.id;
+            schoolId = currUser?.id;
         };
-        const user = new User({ ...userData, schoolId: schoolId, createdById: currUser?.id, updatedById: currUser?.id });
+        const user = new User({ ...userData, schoolId: new mongoose.Types.ObjectId(schoolId), createdById: currUserId, updatedById: currUserId });
         await user.save();
         return user;
     }
@@ -39,6 +41,7 @@ export class UserService implements IUserService {
     }
 
     async listUsers(options: PaginationOptions, role: UserRole, currUser?: IUser): Promise<PaginationResult<IUser>> {
+        console.log("currUser==========================", currUser);
         if (currUser?.role && ![UserRole.Teacher, UserRole.Admin].includes(currUser?.role)) throw new ApiError(ApiErrors.InsufficientPermissions);
         const { pageNumber = 1, pageSize = 20, query } = options;
         const skip = (pageNumber - 1) * pageSize;
@@ -85,9 +88,10 @@ export class UserService implements IUserService {
         if (!user || !(await user.comparePassword(password))) {
             throw new ApiError(ApiErrors.InvalidCredentials);
         }
+        const tempUser = user.toJSON();
 
-        const token = generateToken(user._id, user.role);
-        const refreshToken = generateToken(user._id, user.role, '7d');
+        const token = generateToken(tempUser);
+        const refreshToken = generateToken(tempUser, '7d');
 
         return {
             ...user.toJSON(),
@@ -107,8 +111,8 @@ export class UserService implements IUserService {
             throw new ApiError(ApiErrors.NotFound);
         }
 
-        const newToken = generateToken(user._id, user.role);
-        const newRefreshToken = generateToken(user._id, user.role, '7d');
+        const newToken = generateToken(user);
+        const newRefreshToken = generateToken(user, '7d');
 
         return { token: newToken, refreshToken: newRefreshToken };
     }

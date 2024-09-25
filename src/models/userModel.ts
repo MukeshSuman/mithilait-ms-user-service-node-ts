@@ -35,8 +35,8 @@ export interface IUser extends Document {
     schoolId?: mongoose.Types.ObjectId;
     subscriptionStatus: 'Free' | 'Basic' | 'Premium';
     subscriptionExpiryDate?: Date;
-    createdBy?: mongoose.Types.ObjectId;
-    updatedBy?: mongoose.Types.ObjectId;
+    createdById?: mongoose.Types.ObjectId;
+    updatedById?: mongoose.Types.ObjectId;
     comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -67,8 +67,8 @@ const userSchema = new Schema<IUser>(
         schoolId: { type: Schema.Types.ObjectId, ref: 'User' },
         subscriptionStatus: { type: String, enum: ['Free', 'Basic', 'Premium'], default: 'Free' },
         subscriptionExpiryDate: Date,
-        createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
-        updatedBy: { type: Schema.Types.ObjectId, ref: 'User' }
+        createdById: { type: Schema.Types.ObjectId, ref: 'User' },
+        updatedById: { type: Schema.Types.ObjectId, ref: 'User' }
     },
     {
         timestamps: true,

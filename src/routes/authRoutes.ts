@@ -9,6 +9,14 @@ import { errorHandler } from "../middlewares/errorHandler";
 const router = express.Router();
 const userController = new AuthController();
 
+router.get('/me', authMiddleware(), async (req, res, next) => {
+    try {
+        const result = await userController.me(req);
+        res.json(result);
+    } catch (error: ApiError | any) {
+        errorHandler(error, req, res, next);
+    }
+});
 router.post('/login', validate(loginSchema), async (req, res, next) => {
     try {
         const result = await userController.login(req.body);

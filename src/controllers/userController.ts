@@ -49,7 +49,7 @@ export class UserController extends Controller {
     public async createUser(
         @Body() userData: UserCreationParams,
         @Query() @Hidden() currUser?: IUser): Promise<ApiResponse<IUser | null>> {
-        const user = await this.userService.createUser(userData);
+        const user = await this.userService.createUser(userData, currUser);
         return new ApiResponse(201, true, 'User created successfully', user);
     }
 

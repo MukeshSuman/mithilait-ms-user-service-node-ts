@@ -34,6 +34,6 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
         console.log('---');  // Separator for readability
     });
     logger.info(`${req.method} ${req.path}`);
-    logger.info('Headers:', req.headers);
+    // logger.info('Headers:', req.headers);
     next();
 };

@@ -14,6 +14,13 @@ export class AuthController extends Controller {
         this.userService = new UserService();
     }
 
+    @Get('me')
+    @Security('jwt')
+    public async me(@Request() req: any): Promise<ApiResponse<null>> {
+        const result = await this.userService.getUser(req.user.id);
+        return new ApiResponse(200, true, 'successful', result);
+    }
+
     @Post('login')
     public async login(@Body() credentials: { email: string; password: string; }): Promise<ApiResponse<{ user: IUser; token: string; refreshToken: string; }>> {
         const result = await this.userService.login(credentials.email, credentials.password);

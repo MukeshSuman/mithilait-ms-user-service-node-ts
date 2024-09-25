@@ -10,7 +10,7 @@ import { errorHandler } from "../middlewares/errorHandler";
 const router = express.Router();
 const userController = new UserController();
 
-router.post('/', authMiddleware([UserRole.Admin]), validate(createUserSchema), async (req, res, next) => {
+router.post('/', authMiddleware([UserRole.Admin, UserRole.Teacher]), validate(createUserSchema), async (req, res, next) => {
     try {
         const result = await userController.createUser(req.body, req.user as IUser);
         res.json(result);
@@ -18,7 +18,7 @@ router.post('/', authMiddleware([UserRole.Admin]), validate(createUserSchema), a
         errorHandler(error, req, res, next);
     }
 });
-router.put('/:userId', authMiddleware([UserRole.Admin]), validate(updateUserSchema), async (req, res, next) => {
+router.put('/:userId', authMiddleware([UserRole.Admin, UserRole.Teacher]), validate(updateUserSchema), async (req, res, next) => {
     try {
         delete req.body.password;
         const result = await userController.updateUser(req.params.userId, req.body, req.user as IUser);
@@ -27,7 +27,7 @@ router.put('/:userId', authMiddleware([UserRole.Admin]), validate(updateUserSche
         errorHandler(error, req, res, next);
     }
 });
-router.delete('/:userId', authMiddleware([UserRole.Admin]), async (req, res, next) => {
+router.delete('/:userId', authMiddleware([UserRole.Admin, UserRole.Teacher]), async (req, res, next) => {
     try {
         const result = await userController.deleteUser(req.params.userId);
         res.json(result);
@@ -43,7 +43,7 @@ router.get('/:userId', authMiddleware([UserRole.Admin, UserRole.Teacher, UserRol
         errorHandler(error, req, res, next);
     }
 });
-router.get('/', authMiddleware([UserRole.Admin]), async (req, res, next) => {
+router.get('/', authMiddleware([UserRole.Admin, UserRole.Teacher]), async (req, res, next) => {
     try {
         const { pageNumber = 1, pageSize = 20 } = req.query;
         const query = req.query.query || "";
