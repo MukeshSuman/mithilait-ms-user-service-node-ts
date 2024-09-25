@@ -6,35 +6,57 @@ import { IUserService, IUserWithToken } from "../interfaces/IUserService";
 import { ApiErrors } from "../constants";
 
 export class UserService implements IUserService {
-    async createUser(userData: Partial<IUser>): Promise<IUser> {
-        const user = new User(userData);
+    async createUser(userData: Partial<IUser>, currUser?: IUser): Promise<IUser> {
+        if (currUser?.role && ![UserRole.Teacher, UserRole.Student, UserRole.Admin].includes(currUser?.role)) throw new ApiError(ApiErrors.InsufficientPermissions);
+        if (userData.role === UserRole.Admin) throw new ApiError(ApiErrors.InsufficientPermissions);
+        if (userData?.role === UserRole.Teacher && currUser?.role !== UserRole.Admin) throw new ApiError(ApiErrors.InsufficientPermissions);
+        let schoolId = currUser?.schoolId;
+        if (currUser?.role === UserRole.Admin) {
+            schoolId = userData?.id;
+        };
+        const user = new User({ ...userData, schoolId: schoolId, createdById: currUser?.id, updatedById: currUser?.id });
         await user.save();
         return user;
     }
 
-    async updateUser(userId: string, userData: Partial<IUser>): Promise<IUser> {
+    async updateUser(userId: string, userData: Partial<IUser>, currUser?: IUser): Promise<IUser> {
+        delete userData.role;
         const user = await User.findByIdAndUpdate(userId, userData, { new: true });
         if (!user) throw new ApiError(ApiErrors.NotFound);
         return user;
     }
 
-    async deleteUser(userId: string): Promise<IUser> {
+    async deleteUser(userId: string, currUser?: IUser): Promise<IUser> {
         const user = await User.findByIdAndUpdate(userId, { isDeleted: true }, { new: true });
         if (!user) throw new ApiError(ApiErrors.NotFound);
         return user;
     }
 
-    async getUser(userId: string): Promise<IUser> {
+    async getUser(userId: string, currUser?: IUser): Promise<IUser> {
         const user = await User.findById(userId);
         if (!user || user.isDeleted) throw new ApiError(ApiErrors.NotFound);
         return user;
     }
 
-    async listUsers(options: PaginationOptions): Promise<PaginationResult<IUser>> {
+    async listUsers(options: PaginationOptions, role: UserRole, currUser?: IUser): Promise<PaginationResult<IUser>> {
+        if (currUser?.role && ![UserRole.Teacher, UserRole.Admin].includes(currUser?.role)) throw new ApiError(ApiErrors.InsufficientPermissions);
         const { pageNumber = 1, pageSize = 20, query } = options;
         const skip = (pageNumber - 1) * pageSize;
 
         const queryObj: any = { isDeleted: false };
+
+        if (currUser?.role === UserRole.Teacher) {
+            queryObj.role = UserRole.Student;
+        }
+
+        if (currUser?.role === UserRole.Admin) {
+            if (!role) {
+                queryObj.role = {
+                    $in: [UserRole.Teacher, UserRole.Student]
+                };
+            }
+        }
+
 
         if (query) {
             queryObj.$or = [

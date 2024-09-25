@@ -2,25 +2,36 @@
 import { UserService } from '../services/userService';
 import { ApiResponse } from '../utils/apiResponse';
 import { PaginationOptions, PaginationResult } from '../utils/pagination';
-import { Body, Controller, Get, Path, Post, Put, Delete, Query, Route, Security, Tags, Request } from 'tsoa';
+import { Body, Controller, Get, Path, Post, Put, Delete, Query, Route, Security, Tags, Request, Hidden } from 'tsoa';
 import { IUser, UserRole } from '../models/userModel';
 
 interface UserCreationParams {
     username: string;
-    firstName: string;
-    lastName: string;
     email: string;
     password: string;
+    firstName?: string;
+    lastName?: string;
+    dateOfBirth?: Date;
+    gender?: 'Male' | 'Female' | 'Other' | 'Prefer not to say';
+    // bio?: string;
+    // profilePictureUrl?: string;
+    // websiteUrl?: string;
+    phoneNumber?: string;
     role: UserRole;
 }
 
 interface UserUpdateParams {
     username?: string;
-    firstName: string;
-    lastName: string;
     email?: string;
-    password?: string;
-    role?: UserRole;
+    firstName?: string;
+    lastName?: string;
+    dateOfBirth?: Date;
+    gender?: 'Male' | 'Female' | 'Other' | 'Prefer not to say';
+    // bio?: string;
+    // profilePictureUrl?: string;
+    // websiteUrl?: string;
+    phoneNumber?: string;
+    role: UserRole;
 }
 
 @Route('api/users')
@@ -35,7 +46,9 @@ export class UserController extends Controller {
 
     @Post()
     @Security('jwt', ['admin'])
-    public async createUser(@Body() userData: UserCreationParams): Promise<ApiResponse<IUser | null>> {
+    public async createUser(
+        @Body() userData: UserCreationParams,
+        @Query() @Hidden() currUser?: IUser): Promise<ApiResponse<IUser | null>> {
         const user = await this.userService.createUser(userData);
         return new ApiResponse(201, true, 'User created successfully', user);
     }
@@ -44,7 +57,8 @@ export class UserController extends Controller {
     @Security('jwt', ['admin'])
     public async updateUser(
         @Path() userId: string,
-        @Body() userData: UserUpdateParams
+        @Body() userData: UserUpdateParams,
+        @Query() @Hidden() currUser?: IUser
     ): Promise<ApiResponse<IUser | null>> {
         const user = await this.userService.updateUser(userId, userData);
         return new ApiResponse(200, true, 'User updated successfully', user);
@@ -52,14 +66,20 @@ export class UserController extends Controller {
 
     @Delete('{userId}')
     @Security('jwt', ['admin'])
-    public async deleteUser(@Path() userId: string): Promise<ApiResponse<IUser | null>> {
+    public async deleteUser(
+        @Path() userId: string,
+        @Query() @Hidden() currUser?: IUser
+    ): Promise<ApiResponse<IUser | null>> {
         const user = await this.userService.deleteUser(userId);
         return new ApiResponse(200, true, 'User deleted successfully', user);
     }
 
     @Get('{userId}')
     @Security('jwt', ['admin', 'teacher', 'student'])
-    public async getUser(@Path() userId: string): Promise<ApiResponse<IUser | null>> {
+    public async getUser(
+        @Path() userId: string,
+        @Query() @Hidden() currUser?: IUser
+    ): Promise<ApiResponse<IUser | null>> {
         const user = await this.userService.getUser(userId);
         return new ApiResponse(200, true, 'User retrieved successfully', user);
     }
@@ -70,29 +90,11 @@ export class UserController extends Controller {
         @Query() pageNumber: number = 1,
         @Query() pageSize: number = 20,
         @Query() query?: string,
-        @Query() role?: UserRole,
+        @Query() role?: [UserRole.Admin, UserRole.Teacher, UserRole.Student],
+        @Query() @Hidden() currUser?: IUser
     ): Promise<ApiResponse<PaginationResult<IUser>>> {
         const options: PaginationOptions = { pageNumber, pageSize, query };
-        const result = await this.userService.listUsers(options);
+        const result = await this.userService.listUsers(options, role as any, currUser);
         return new ApiResponse(200, true, 'Users retrieved successfully', result);
-    }
-
-    @Post('login')
-    public async login(@Body() credentials: { email: string; password: string; }): Promise<ApiResponse<{ user: IUser; token: string; refreshToken: string; }>> {
-        const result = await this.userService.login(credentials.email, credentials.password);
-        return new ApiResponse(200, true, 'Login successful', result);
-    }
-
-    @Post('refresh-token')
-    public async refreshToken(@Body() body: { refreshToken: string; }): Promise<ApiResponse<{ token: string; refreshToken: string; }>> {
-        const result = await this.userService.refreshToken(body.refreshToken);
-        return new ApiResponse(200, true, 'Token refreshed successfully', result);
-    }
-
-    @Post('logout')
-    @Security('jwt')
-    public async logout(@Request() req: any): Promise<ApiResponse<null>> {
-        await this.userService.logout(req.user.userId);
-        return new ApiResponse(200, true, 'Logout successful', null);
     }
 }

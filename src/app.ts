@@ -2,6 +2,7 @@ import express from 'express';
 import { config } from 'dotenv';
 import swaggerUi from 'swagger-ui-express';
 import { userRouter } from './routes/userRoutes';
+import { authRouter } from './routes/authRoutes';
 import { errorHandler } from './middlewares/errorHandler';
 import { connectDB } from './config/database';
 import { logger } from './config/logger';
@@ -54,6 +55,7 @@ app.use('/docs', swaggerUi.serve, async (_req: express.Request, res: express.Res
 
 // Routes
 app.use('/api/users', userRouter);
+app.use('/api/auth', authRouter);
 
 // Error handling middleware
 app.use(errorHandler);

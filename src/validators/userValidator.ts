@@ -3,20 +3,31 @@ import { UserRole } from '../models/userModel';
 
 export const createUserSchema = Joi.object({
     username: Joi.string().required(),
-    firstName: Joi.string().required(),
-    lastName: Joi.string().required(),
     email: Joi.string().email().required(),
     password: Joi.string().min(6).required(),
-    role: Joi.string().valid(...Object.values(UserRole)).required(),
+    firstName: Joi.string().optional(),
+    lastName: Joi.string().optional(),
+    dateOfBirth: Joi.date().iso().optional(),
+    gender: Joi.string().valid('Male', 'Female', 'Other', 'Prefer not to say').optional(),
+    bio: Joi.string().optional(),
+    profilePictureUrl: Joi.string().uri().optional(),
+    websiteUrl: Joi.string().uri().optional(),
+    phoneNumber: Joi.string().optional(),
+    role: Joi.string().valid(...Object.values(UserRole)).required()
 });
 
 export const updateUserSchema = Joi.object({
-    username: Joi.string(),
-    firstName: Joi.string(),
-    lastName: Joi.string(),
-    email: Joi.string().email(),
-    password: Joi.string().min(6),
-    role: Joi.string().valid(...Object.values(UserRole)),
+    username: Joi.string().optional(),
+    email: Joi.string().email().optional(),
+    firstName: Joi.string().optional(),
+    lastName: Joi.string().optional(),
+    dateOfBirth: Joi.date().iso().optional(),
+    gender: Joi.string().valid('Male', 'Female', 'Other', 'Prefer not to say').optional(),
+    bio: Joi.string().optional(),
+    profilePictureUrl: Joi.string().uri().optional(),
+    websiteUrl: Joi.string().uri().optional(),
+    phoneNumber: Joi.string().optional(),
+    role: Joi.string().valid(...Object.values(UserRole)).required()
 });
 
 export const loginSchema = Joi.object({
