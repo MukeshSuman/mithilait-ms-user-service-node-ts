@@ -90,7 +90,7 @@ export class UserController extends Controller {
         @Query() pageNumber: number = 1,
         @Query() pageSize: number = 20,
         @Query() query?: string,
-        @Query() role?: [UserRole.Admin, UserRole.Teacher, UserRole.Student],
+        @Query() role?: UserRole,
         @Query() @Hidden() currUser?: IUser
     ): Promise<ApiResponse<PaginationResult<IUser>>> {
         const options: PaginationOptions = { pageNumber, pageSize, query };
