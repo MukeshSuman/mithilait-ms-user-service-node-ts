@@ -134,3 +134,6 @@ public/swagger.json
 
 # TSOA generated routes
 src/routes/routes.ts
+
+# upload file
+upload/*

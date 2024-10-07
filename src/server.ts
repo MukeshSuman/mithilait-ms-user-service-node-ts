@@ -5,8 +5,8 @@ import { app } from './app';
 // // import * as WebSocket from 'ws';
 // import { Server } from "socket.io";
 
-// // import * as fs from 'fs';
-// // import * as path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 // import * as sdk from 'microsoft-cognitiveservices-speech-sdk';
 // import dotenv from 'dotenv';
 // import _ from 'lodash';
@@ -315,6 +315,12 @@ interface RecognizerInfo {
 }
 
 const recognizerMap = new Map<string, RecognizerInfo>();
+const clientStreams = new Map<string, fs.WriteStream>();
+
+// const targetSocket = io.sockets.sockets.get(targetSocketId);
+// if (targetSocket) {
+//   targetSocket.emit('playAudio', audioData); // Send audio to the target client
+// }
 
 io.on('connection', (socket: Socket) => {
     console.log('Client connected:', socket.id);
@@ -326,21 +332,41 @@ io.on('connection', (socket: Socket) => {
 
     socket.on('audioChunk', (audioData: ArrayBuffer) => {
         if (recognizerMap.has(socket.id)) {
+
             const { pushStream } = recognizerMap.get(socket.id)!;
             const buffer = Buffer.from(new Uint8Array(audioData));
             pushStream.write(buffer);
+            if (!clientStreams.has(socket.id)) {
+                const filePath = path.join(__dirname, '../upload', `audio_${socket.id}.wav`);
+                const writableStream = fs.createWriteStream(filePath);
+                clientStreams.set(socket.id, writableStream);
+            }
+            const writableStream = clientStreams.get(socket.id);
+            if (writableStream) {
+                writableStream.write(Buffer.from(audioData));  // Write audio chunk to file
+            }
         }
     });
 
     socket.on('stopPronunciationAssessment', () => {
         stopPronunciationAssessment(socket);
+        closeStreamsSafe(socket);
     });
 
     socket.on('disconnect', () => {
         console.log('Client disconnected:', socket.id);
         stopPronunciationAssessment(socket);
+        closeStreamsSafe(socket);
     });
 });
+
+const closeStreamsSafe = (socket: Socket) => {
+    const writableStream = clientStreams.get(socket.id);
+    if (writableStream) {
+        writableStream.end();  // Close the stream when audio stops
+        clientStreams.delete(socket.id);  // Remove the stream from the map
+    }
+};
 
 function startPronunciationAssessment(socket: Socket, expectedText: string) {
     const speechConfig = sdk.SpeechConfig.fromSubscription(speechKey, speechRegion);
@@ -372,8 +398,24 @@ function startPronunciationAssessment(socket: Socket, expectedText: string) {
     recognizer.recognized = (s, e) => {
         if (e.result.reason === sdk.ResultReason.RecognizedSpeech) {
             const jsonResult = e.result.properties.getProperty(sdk.PropertyId.SpeechServiceResponse_JsonResult);
+            const pronunciationResult2 = sdk.PronunciationAssessmentResult.fromResult(e.result);
+            console.log(`(recognizing) Pronunciation score: ${pronunciationResult2}`);
+            const pronunciationResultScore = {
+                text: e.result.text,
+                pronunciationAssessment: {
+                    AccuracyScore: pronunciationResult2.accuracyScore,
+                    FluencyScore: pronunciationResult2.fluencyScore,
+                    CompletenessScore: pronunciationResult2.completenessScore,
+                    PronunciationScore: pronunciationResult2.pronunciationScore
+                },
+                // pronunciationScore: pronunciationResult2.pronunciationScore,
+                // accuracyScore: pronunciationResult2.accuracyScore,
+                // fluencyScore: pronunciationResult2.fluencyScore,
+                // completenessScore: pronunciationResult2.completenessScore,
+            };
+
             const pronunciationResult = JSON.parse(jsonResult);
-            socket.emit('pronunciationResult', pronunciationResult);
+            socket.emit('pronunciationResult', pronunciationResultScore);
         } else if (e.result.reason === sdk.ResultReason.NoMatch) {
             console.log('No speech recognized.');
         }
