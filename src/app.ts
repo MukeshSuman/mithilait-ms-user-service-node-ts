@@ -16,7 +16,7 @@ const app = express();
 
 // CORS Configuration
 const corsOptions: cors.CorsOptions = {
-    // origin:'*',
+    origin: '*',
     // origin: (origin, callback) => {
     //     logger.info(`Request from origin: ${origin}`);
     //     const allowedOrigins = process.env.ALLOWED_ORIGINS
