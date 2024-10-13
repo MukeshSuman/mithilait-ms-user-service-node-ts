@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 
 export enum UserRole {
     Admin = 'admin',
+    School = 'school',
     Teacher = 'teacher',
     Student = 'student',
     Guest = 'guest',
@@ -15,7 +16,7 @@ export interface IUser extends Document {
     firstName?: string;
     lastName?: string;
     dateOfBirth?: Date;
-    gender?: 'Male' | 'Female' | 'Other' | 'Prefer not to say';
+    gender?: 'Male' | 'Female' | 'Other' | '';
     bio?: string;
     profilePictureUrl?: string;
     websiteUrl?: string;
@@ -76,9 +77,11 @@ const userSchema = new Schema<IUser>(
             virtuals: true,
             transform: function (doc, ret) {
                 ret.id = ret._id.toString();
+                ret.name = `${ret.firstName || ''} ${ret.lastName}`.trim();
                 delete ret.__v;
                 delete ret.password;
                 delete ret.isDeleted;
+
                 return ret;
             }
         },
@@ -86,6 +89,7 @@ const userSchema = new Schema<IUser>(
             virtuals: true,
             transform: function (doc, ret) {
                 ret.id = ret._id.toString();
+                ret.name = `${ret.firstName || ''} ${ret.lastName}`.trim();
                 delete ret.__v;
                 delete ret.password;
                 delete ret.isDeleted;

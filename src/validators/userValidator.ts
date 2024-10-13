@@ -30,6 +30,31 @@ export const updateUserSchema = Joi.object({
     role: Joi.string().valid(...Object.values(UserRole)).required()
 });
 
+export const createSchoolSchema = Joi.object({
+    username: Joi.string().required(),
+    email: Joi.string().email().required(),
+    password: Joi.string().min(6).required(),
+    name: Joi.string().required(),
+    dateOfBirth: Joi.date().iso().optional(),
+    gender: Joi.string().valid('Male', 'Female', 'Other', 'Prefer not to say').optional(),
+    bio: Joi.string().optional(),
+    profilePictureUrl: Joi.string().uri().optional(),
+    websiteUrl: Joi.string().uri().optional(),
+    phoneNumber: Joi.string().optional(),
+});
+
+export const updateSchoolSchema = Joi.object({
+    username: Joi.string().optional(),
+    email: Joi.string().email().optional(),
+    name: Joi.string().required(),
+    dateOfBirth: Joi.date().iso().optional(),
+    gender: Joi.string().valid('Male', 'Female', 'Other', 'Prefer not to say').optional(),
+    bio: Joi.string().optional(),
+    profilePictureUrl: Joi.string().uri().optional(),
+    websiteUrl: Joi.string().uri().optional(),
+    phoneNumber: Joi.string().optional(),
+});
+
 export const loginSchema = Joi.object({
     email: Joi.string().email().required(),
     password: Joi.string().required(),

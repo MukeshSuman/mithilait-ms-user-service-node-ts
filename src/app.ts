@@ -9,6 +9,7 @@ import { requestLogger } from "./middlewares";
 import { userRouter } from './routes/userRoutes';
 import { authRouter } from './routes/authRoutes';
 import { speechRouter } from "./routes/speechRoutes";
+import { schoolRouter } from "./routes/schoolRoutes";
 
 config();
 
@@ -59,6 +60,7 @@ app.use('/docs', swaggerUi.serve, async (_req: express.Request, res: express.Res
 app.use('/api/users', userRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/speech', speechRouter);
+app.use('/api/schools', schoolRouter);
 
 // Error handling middleware
 app.use(errorHandler);

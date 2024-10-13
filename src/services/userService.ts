@@ -8,21 +8,27 @@ import mongoose from "mongoose";
 
 export class UserService implements IUserService {
     async createUser(userData: Partial<IUser>, currUser?: IUser): Promise<IUser> {
-        if (currUser?.role && ![UserRole.Teacher, UserRole.Student, UserRole.Admin].includes(currUser?.role)) throw new ApiError(ApiErrors.InsufficientPermissions);
+        if (currUser?.role && ![UserRole.Teacher, UserRole.Student, UserRole.Admin, UserRole.School].includes(currUser?.role)) throw new ApiError(ApiErrors.InsufficientPermissions);
         if (userData.role === UserRole.Admin) throw new ApiError(ApiErrors.InsufficientPermissions);
-        if (userData?.role === UserRole.Teacher && currUser?.role !== UserRole.Admin) throw new ApiError(ApiErrors.InsufficientPermissions);
-        let schoolId = currUser?.schoolId;
+        if (userData?.role === UserRole.School && currUser?.role !== UserRole.Admin) throw new ApiError(ApiErrors.InsufficientPermissions);
+        // let schoolId = currUser?.schoolId;
         const currUserId = new mongoose.Types.ObjectId(currUser?.id);
-        if (currUser?.role === UserRole.Admin) {
-            schoolId = currUser?.id;
+        const saveData = { ...userData, createdById: currUserId, updatedById: currUserId };
+        if (currUser?.role === UserRole.School) {
+            saveData.schoolId = new mongoose.Types.ObjectId(currUser?.id);
         };
-        const user = new User({ ...userData, schoolId: new mongoose.Types.ObjectId(schoolId), createdById: currUserId, updatedById: currUserId });
+        // if (userData?.role === UserRole.Teacher || userData?.role === UserRole.Student) {
+        //     saveData.schoolId = new mongoose.Types.ObjectId(currUser?.id);
+        // }
+        const user = new User(saveData);
         await user.save();
         return user;
     }
 
     async updateUser(userId: string, userData: Partial<IUser>, currUser?: IUser): Promise<IUser> {
         delete userData.role;
+        console.log("userData==========================", userData);
+        console.log("userId =========================", userId);
         const user = await User.findByIdAndUpdate(userId, userData, { new: true });
         if (!user) throw new ApiError(ApiErrors.NotFound);
         return user;
@@ -42,7 +48,8 @@ export class UserService implements IUserService {
 
     async listUsers(options: PaginationOptions, role: UserRole, currUser?: IUser): Promise<PaginationResult<IUser>> {
         console.log("currUser==========================", currUser);
-        if (currUser?.role && ![UserRole.Teacher, UserRole.Admin].includes(currUser?.role)) throw new ApiError(ApiErrors.InsufficientPermissions);
+        console.log("role==========================", role);
+        if (currUser?.role && ![UserRole.Teacher, UserRole.School, UserRole.Admin].includes(currUser?.role)) throw new ApiError(ApiErrors.InsufficientPermissions);
         const { pageNumber = 1, pageSize = 20, query } = options;
         const skip = (pageNumber - 1) * pageSize;
 
@@ -57,6 +64,8 @@ export class UserService implements IUserService {
                 queryObj.role = {
                     $in: [UserRole.Teacher, UserRole.Student]
                 };
+            } else {
+                queryObj.role = role;
             }
         }
 
@@ -74,7 +83,7 @@ export class UserService implements IUserService {
         ]);
 
         return {
-            items: users,
+            items: users.map((user) => user.toJSON()),
             pageNumber: pageNumber,
             pageSize: pageSize,
             totalItems: total,

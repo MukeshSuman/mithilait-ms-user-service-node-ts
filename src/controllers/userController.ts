@@ -12,7 +12,7 @@ interface UserCreationParams {
     firstName?: string;
     lastName?: string;
     dateOfBirth?: Date;
-    gender?: 'Male' | 'Female' | 'Other' | 'Prefer not to say';
+    gender?: 'Male' | 'Female' | 'Other' | '';
     // bio?: string;
     // profilePictureUrl?: string;
     // websiteUrl?: string;
@@ -26,7 +26,7 @@ interface UserUpdateParams {
     firstName?: string;
     lastName?: string;
     dateOfBirth?: Date;
-    gender?: 'Male' | 'Female' | 'Other' | 'Prefer not to say';
+    gender?: 'Male' | 'Female' | 'Other' | '';
     // bio?: string;
     // profilePictureUrl?: string;
     // websiteUrl?: string;
