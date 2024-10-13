@@ -57,6 +57,12 @@ export class UserService implements IUserService {
 
         if (currUser?.role === UserRole.Teacher) {
             queryObj.role = UserRole.Student;
+            queryObj.schoolId = new mongoose.Types.ObjectId(currUser?.schoolId);
+        }
+
+        if (currUser?.role === UserRole.School) {
+            queryObj.role = UserRole.Student;
+            queryObj.schoolId = new mongoose.Types.ObjectId(currUser?.id);
         }
 
         if (currUser?.role === UserRole.Admin) {

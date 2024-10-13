@@ -10,6 +10,7 @@ import { userRouter } from './routes/userRoutes';
 import { authRouter } from './routes/authRoutes';
 import { speechRouter } from "./routes/speechRoutes";
 import { schoolRouter } from "./routes/schoolRoutes";
+import { studentRouter } from "./routes/studentRoutes";
 
 config();
 
@@ -61,6 +62,7 @@ app.use('/api/users', userRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/speech', speechRouter);
 app.use('/api/schools', schoolRouter);
+app.use('/api/students', studentRouter);
 
 // Error handling middleware
 app.use(errorHandler);

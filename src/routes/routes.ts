@@ -9,6 +9,8 @@ import { SchoolController } from './../controllers/schoolController';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { SpeechController } from './../controllers/speechController';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+import { StudentController } from './../controllers/studentController';
+// WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { UserController } from './../controllers/userController';
 import { expressAuthentication } from './../middlewares/authMiddleware';
 // @ts-ignore - no great way to install types from subpackage
@@ -148,6 +150,28 @@ const models: TsoaRoute.Models = {
             "error": {"dataType":"any"},
         },
         "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "StudentCreationParams": {
+        "dataType": "refObject",
+        "properties": {
+            "username": {"dataType":"string","required":true},
+            "firstName": {"dataType":"string","required":true},
+            "lastName": {"dataType":"string","required":true},
+            "email": {"dataType":"string","required":true},
+            "password": {"dataType":"string","required":true},
+            "phoneNumber": {"dataType":"string"},
+            "gender": {"dataType":"union","subSchemas":[{"dataType":"enum","enums":["Male"]},{"dataType":"enum","enums":["Female"]},{"dataType":"enum","enums":["Other"]},{"dataType":"enum","enums":[""]}]},
+            "rollNumber": {"dataType":"double","required":true},
+            "class": {"dataType":"union","subSchemas":[{"dataType":"enum","enums":[1]},{"dataType":"enum","enums":[2]},{"dataType":"enum","enums":[3]},{"dataType":"enum","enums":[4]},{"dataType":"enum","enums":[5]},{"dataType":"enum","enums":[6]},{"dataType":"enum","enums":[7]},{"dataType":"enum","enums":[8]},{"dataType":"enum","enums":[9]},{"dataType":"enum","enums":[10]},{"dataType":"enum","enums":[11]},{"dataType":"enum","enums":[12]}],"required":true},
+            "section": {"dataType":"string","required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "Partial_StudentCreationParams_": {
+        "dataType": "refAlias",
+        "type": {"dataType":"nestedObjectLiteral","nestedProperties":{"username":{"dataType":"string"},"firstName":{"dataType":"string"},"lastName":{"dataType":"string"},"email":{"dataType":"string"},"password":{"dataType":"string"},"phoneNumber":{"dataType":"string"},"gender":{"dataType":"union","subSchemas":[{"dataType":"enum","enums":["Male"]},{"dataType":"enum","enums":["Female"]},{"dataType":"enum","enums":["Other"]},{"dataType":"enum","enums":[""]}]},"rollNumber":{"dataType":"double"},"class":{"dataType":"union","subSchemas":[{"dataType":"enum","enums":[1]},{"dataType":"enum","enums":[2]},{"dataType":"enum","enums":[3]},{"dataType":"enum","enums":[4]},{"dataType":"enum","enums":[5]},{"dataType":"enum","enums":[6]},{"dataType":"enum","enums":[7]},{"dataType":"enum","enums":[8]},{"dataType":"enum","enums":[9]},{"dataType":"enum","enums":[10]},{"dataType":"enum","enums":[11]},{"dataType":"enum","enums":[12]}]},"section":{"dataType":"string"}},"validators":{}},
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "UserCreationParams": {
@@ -477,6 +501,140 @@ export function RegisterRoutes(app: Router) {
             }
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        app.post('/api/students',
+            authenticateMiddleware([{"jwt":["admin"]}]),
+            ...(fetchMiddlewares<RequestHandler>(StudentController)),
+            ...(fetchMiddlewares<RequestHandler>(StudentController.prototype.create)),
+
+            function StudentController_create(request: any, response: any, next: any) {
+            const args = {
+                    userData: {"in":"body","name":"userData","required":true,"ref":"StudentCreationParams"},
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = getValidatedArgs(args, request, response);
+
+                const controller = new StudentController();
+
+
+              const promise = controller.create.apply(controller, validatedArgs as any);
+              promiseHandler(controller, promise, response, undefined, next);
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        app.put('/api/students/:id',
+            authenticateMiddleware([{"jwt":["admin"]}]),
+            ...(fetchMiddlewares<RequestHandler>(StudentController)),
+            ...(fetchMiddlewares<RequestHandler>(StudentController.prototype.update)),
+
+            function StudentController_update(request: any, response: any, next: any) {
+            const args = {
+                    id: {"in":"path","name":"id","required":true,"dataType":"string"},
+                    userData: {"in":"body","name":"userData","required":true,"ref":"Partial_StudentCreationParams_"},
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = getValidatedArgs(args, request, response);
+
+                const controller = new StudentController();
+
+
+              const promise = controller.update.apply(controller, validatedArgs as any);
+              promiseHandler(controller, promise, response, undefined, next);
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        app.delete('/api/students/:id',
+            authenticateMiddleware([{"jwt":["admin"]}]),
+            ...(fetchMiddlewares<RequestHandler>(StudentController)),
+            ...(fetchMiddlewares<RequestHandler>(StudentController.prototype.delete)),
+
+            function StudentController_delete(request: any, response: any, next: any) {
+            const args = {
+                    id: {"in":"path","name":"id","required":true,"dataType":"string"},
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = getValidatedArgs(args, request, response);
+
+                const controller = new StudentController();
+
+
+              const promise = controller.delete.apply(controller, validatedArgs as any);
+              promiseHandler(controller, promise, response, undefined, next);
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        app.get('/api/students/:id',
+            authenticateMiddleware([{"jwt":["admin","school","student"]}]),
+            ...(fetchMiddlewares<RequestHandler>(StudentController)),
+            ...(fetchMiddlewares<RequestHandler>(StudentController.prototype.getById)),
+
+            function StudentController_getById(request: any, response: any, next: any) {
+            const args = {
+                    id: {"in":"path","name":"id","required":true,"dataType":"string"},
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = getValidatedArgs(args, request, response);
+
+                const controller = new StudentController();
+
+
+              const promise = controller.getById.apply(controller, validatedArgs as any);
+              promiseHandler(controller, promise, response, undefined, next);
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        app.get('/api/students',
+            authenticateMiddleware([{"jwt":["admin","school"]}]),
+            ...(fetchMiddlewares<RequestHandler>(StudentController)),
+            ...(fetchMiddlewares<RequestHandler>(StudentController.prototype.getAll)),
+
+            function StudentController_getAll(request: any, response: any, next: any) {
+            const args = {
+                    pageNumber: {"default":1,"in":"query","name":"pageNumber","dataType":"double"},
+                    pageSize: {"default":20,"in":"query","name":"pageSize","dataType":"double"},
+                    query: {"in":"query","name":"query","dataType":"string"},
+                    role: {"in":"query","name":"role","ref":"UserRole"},
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = getValidatedArgs(args, request, response);
+
+                const controller = new StudentController();
+
+
+              const promise = controller.getAll.apply(controller, validatedArgs as any);
+              promiseHandler(controller, promise, response, undefined, next);
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         app.post('/api/users',
             authenticateMiddleware([{"jwt":["admin"]}]),
             ...(fetchMiddlewares<RequestHandler>(UserController)),
@@ -503,14 +661,14 @@ export function RegisterRoutes(app: Router) {
             }
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-        app.put('/api/users/:userId',
+        app.put('/api/users/:id',
             authenticateMiddleware([{"jwt":["admin"]}]),
             ...(fetchMiddlewares<RequestHandler>(UserController)),
             ...(fetchMiddlewares<RequestHandler>(UserController.prototype.updateUser)),
 
             function UserController_updateUser(request: any, response: any, next: any) {
             const args = {
-                    userId: {"in":"path","name":"userId","required":true,"dataType":"string"},
+                    id: {"in":"path","name":"id","required":true,"dataType":"string"},
                     userData: {"in":"body","name":"userData","required":true,"ref":"UserUpdateParams"},
             };
 
@@ -530,14 +688,14 @@ export function RegisterRoutes(app: Router) {
             }
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-        app.delete('/api/users/:userId',
+        app.delete('/api/users/:id',
             authenticateMiddleware([{"jwt":["admin"]}]),
             ...(fetchMiddlewares<RequestHandler>(UserController)),
             ...(fetchMiddlewares<RequestHandler>(UserController.prototype.deleteUser)),
 
             function UserController_deleteUser(request: any, response: any, next: any) {
             const args = {
-                    userId: {"in":"path","name":"userId","required":true,"dataType":"string"},
+                    id: {"in":"path","name":"id","required":true,"dataType":"string"},
             };
 
             // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
@@ -556,14 +714,14 @@ export function RegisterRoutes(app: Router) {
             }
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-        app.get('/api/users/:userId',
+        app.get('/api/users/:id',
             authenticateMiddleware([{"jwt":["admin","teacher","student"]}]),
             ...(fetchMiddlewares<RequestHandler>(UserController)),
             ...(fetchMiddlewares<RequestHandler>(UserController.prototype.getUser)),
 
             function UserController_getUser(request: any, response: any, next: any) {
             const args = {
-                    userId: {"in":"path","name":"userId","required":true,"dataType":"string"},
+                    id: {"in":"path","name":"id","required":true,"dataType":"string"},
             };
 
             // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa

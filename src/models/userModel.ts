@@ -1,5 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
+import { number } from "joi";
 
 export enum UserRole {
     Admin = 'admin',
@@ -39,6 +40,10 @@ export interface IUser extends Document {
     createdById?: mongoose.Types.ObjectId;
     updatedById?: mongoose.Types.ObjectId;
     comparePassword(candidatePassword: string): Promise<boolean>;
+    rollNumber?: number;
+    section?: string;
+    class?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
+    assessmentYear?: number;
 }
 
 const userSchema = new Schema<IUser>(
@@ -64,6 +69,37 @@ const userSchema = new Schema<IUser>(
         userAgent: String,
         loginAttempts: { type: Number, default: 0 },
         lastPasswordChange: Date,
+        rollNumber: { type: Number, default: 0 },
+        section: {
+            type: String,
+            enum: [
+                'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+                'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
+            ],
+            message: '{VALUE} is not a valid section'
+        },
+        class: {
+            type: Number,
+            required: false,
+            min: 1, // Minimum value 1
+            max: 12, // Maximum value 12
+            validate: {
+                validator: Number.isInteger, // Ensures it's an integer
+                message: '{VALUE} is not an integer value'
+            }
+        },
+        assessmentYear: {
+            type: Number,
+            required: false,
+            min: 2019, // Minimum value 2019
+            max: 2030, // Maximum value 2030
+            validate: {
+                validator: Number.isInteger, // Ensures it's an integer
+                message: '{VALUE} is not an integer value'
+            },
+            default: new Date().getFullYear()
+        },
+        isActive: { type: Boolean, default: true },
         isDeleted: { type: Boolean, default: false },
         schoolId: { type: Schema.Types.ObjectId, ref: 'User' },
         subscriptionStatus: { type: String, enum: ['Free', 'Basic', 'Premium'], default: 'Free' },
