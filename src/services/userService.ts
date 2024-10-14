@@ -132,6 +132,43 @@ export class UserService implements IUserService {
         return { token: newToken, refreshToken: newRefreshToken };
     }
 
+    async bulkStudentInsertOrUpdate(students: Array<any>, currUser?: IUser): Promise<any> {
+        let totalAdded = 0;
+        let totalUpdated = 0;
+        let totalError = 0;
+
+        const schoolId = new mongoose.Types.ObjectId(currUser?.id);
+        const tempNumber = new Date().getTime();
+        const bulkOps = students.map((student, idx) => ({
+            updateOne: {
+                filter: { email: student.email },
+                update: { $set: { ...student, username: idx + 'STU' + tempNumber, schoolId: schoolId, role: 'student', password: '$2b$10$Jo4ApxQMs/4cawgtHhbXMOrSNfhB3.6SAaosPaF8qcgMaqDS3HCsW' } },
+                upsert: true
+            }
+        }));
+
+        try {
+            const result = await User.bulkWrite(bulkOps);
+
+            // Count added and updated documents
+            totalAdded = result.upsertedCount;   // Documents added
+            totalUpdated = result.modifiedCount;  // Documents updated
+
+        } catch (err) {
+            console.error(err);
+            // Count total errors if any
+            // totalError = students.length;  // Assume all failed for simplicity
+        }
+
+        return {
+            total: students.length,
+            totalAdded,
+            totalUpdated,
+            totalError
+        };
+
+    }
+
     async logout(userId: string): Promise<void> {
         // In a real-world scenario, you might want to invalidate the token
         // This could involve storing invalid tokens in a blacklist (e.g., Redis)

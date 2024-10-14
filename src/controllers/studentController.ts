@@ -1,9 +1,17 @@
 // import { Request } from 'express';
 import { UserService } from '../services/userService';
-import { ApiResponse } from '../utils/apiResponse';
+import { ApiError, ApiResponse } from '../utils/apiResponse';
 import { PaginationOptions, PaginationResult } from '../utils/pagination';
-import { Body, Controller, Get, Path, Post, Put, Delete, Query, Route, Security, Tags, Request, Hidden } from 'tsoa';
+import { Body, Controller, Get, Path, Post, Put, Delete, Query, Route, Security, Tags, Request, Hidden, UploadedFile } from 'tsoa';
+import multer from 'multer';
+import xlsx from 'xlsx';
 import { IUser, UserRole } from '../models/userModel';
+import csvParser from "csv-parser";
+import fs from 'fs';
+import { ApiErrors } from "../constants";
+
+const upload = multer({ dest: 'upload/bulk-upload' });
+
 
 interface StudentCreationParams {
     username: string;
@@ -88,5 +96,56 @@ export class StudentController extends Controller {
         const options: PaginationOptions = { pageNumber, pageSize, query };
         const result = await this.userService.listUsers(options, UserRole.Student, currUser);
         return new ApiResponse(200, true, 'Student retrieved successfully', result);
+    }
+
+    @Post('/bulk-upload')
+    @Security('jwt', ['school'])
+    public async bulkUpload(@UploadedFile() file: Express.Multer.File, @Query() @Hidden() currUser?: IUser): Promise<ApiResponse<any>> {
+        // Allowed MIME types for CSV, XLS, and XLSX
+        const allowedMimeTypes = [
+            'text/csv',
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        ];
+
+        if (!allowedMimeTypes.includes(file.mimetype)) {
+            throw new ApiError({
+                code: 'INVALID_FILE_TYPE',
+                httpStatusCode: 400,
+                message: 'Invalid file type. Please upload a CSV, XLS or XLSX file.'
+            });
+        }
+
+        let students = [];
+
+        if ("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" === file.mimetype || "application/vnd.ms-excel" === file.mimetype) {
+            students = await this.parseFile(file);
+        } else if ("text/csv" === file.mimetype) {
+            students = await this.parseCSV(file);
+        }
+
+        console.log("students", students);
+
+        const result = await this.userService.bulkStudentInsertOrUpdate(students, currUser);
+        return new ApiResponse(200, true, 'Bulk upload successful', result);
+    }
+
+    private parseFile(file: Express.Multer.File): any[] {
+        const workbook = xlsx.readFile(file.path);
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        return xlsx.utils.sheet_to_json(sheet);
+    }
+
+    private parseCSV(file: Express.Multer.File): any {
+        const students: any[] = [];
+        // Parse the uploaded CSV file
+        return new Promise((resolve, reject) => {
+            const results: any[] = [];
+            fs.createReadStream(file.path)
+                .pipe(csvParser())
+                .on('data', (data) => results.push(data))
+                .on('end', () => resolve(results))  // Resolve with the parsed data
+                .on('error', (err) => reject(err)); // Reject the promise on error
+        });
     }
 }

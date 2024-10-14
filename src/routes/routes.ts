@@ -16,6 +16,8 @@ import { expressAuthentication } from './../middlewares/authMiddleware';
 // @ts-ignore - no great way to install types from subpackage
 const promiseAny = require('promise.any');
 import type { RequestHandler, Router } from 'express';
+const multer = require('multer');
+const upload = multer();
 
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
@@ -165,13 +167,14 @@ const models: TsoaRoute.Models = {
             "rollNumber": {"dataType":"double","required":true},
             "class": {"dataType":"union","subSchemas":[{"dataType":"enum","enums":[1]},{"dataType":"enum","enums":[2]},{"dataType":"enum","enums":[3]},{"dataType":"enum","enums":[4]},{"dataType":"enum","enums":[5]},{"dataType":"enum","enums":[6]},{"dataType":"enum","enums":[7]},{"dataType":"enum","enums":[8]},{"dataType":"enum","enums":[9]},{"dataType":"enum","enums":[10]},{"dataType":"enum","enums":[11]},{"dataType":"enum","enums":[12]}],"required":true},
             "section": {"dataType":"string","required":true},
+            "assessmentYear": {"dataType":"union","subSchemas":[{"dataType":"enum","enums":[2019]},{"dataType":"enum","enums":[2020]},{"dataType":"enum","enums":[2021]},{"dataType":"enum","enums":[2022]},{"dataType":"enum","enums":[2023]},{"dataType":"enum","enums":[2024]},{"dataType":"enum","enums":[2025]},{"dataType":"enum","enums":[2026]},{"dataType":"enum","enums":[2027]},{"dataType":"enum","enums":[2028]},{"dataType":"enum","enums":[2029]},{"dataType":"enum","enums":[2030]}],"required":true},
         },
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "Partial_StudentCreationParams_": {
         "dataType": "refAlias",
-        "type": {"dataType":"nestedObjectLiteral","nestedProperties":{"username":{"dataType":"string"},"firstName":{"dataType":"string"},"lastName":{"dataType":"string"},"email":{"dataType":"string"},"password":{"dataType":"string"},"phoneNumber":{"dataType":"string"},"gender":{"dataType":"union","subSchemas":[{"dataType":"enum","enums":["Male"]},{"dataType":"enum","enums":["Female"]},{"dataType":"enum","enums":["Other"]},{"dataType":"enum","enums":[""]}]},"rollNumber":{"dataType":"double"},"class":{"dataType":"union","subSchemas":[{"dataType":"enum","enums":[1]},{"dataType":"enum","enums":[2]},{"dataType":"enum","enums":[3]},{"dataType":"enum","enums":[4]},{"dataType":"enum","enums":[5]},{"dataType":"enum","enums":[6]},{"dataType":"enum","enums":[7]},{"dataType":"enum","enums":[8]},{"dataType":"enum","enums":[9]},{"dataType":"enum","enums":[10]},{"dataType":"enum","enums":[11]},{"dataType":"enum","enums":[12]}]},"section":{"dataType":"string"}},"validators":{}},
+        "type": {"dataType":"nestedObjectLiteral","nestedProperties":{"username":{"dataType":"string"},"firstName":{"dataType":"string"},"lastName":{"dataType":"string"},"email":{"dataType":"string"},"password":{"dataType":"string"},"phoneNumber":{"dataType":"string"},"gender":{"dataType":"union","subSchemas":[{"dataType":"enum","enums":["Male"]},{"dataType":"enum","enums":["Female"]},{"dataType":"enum","enums":["Other"]},{"dataType":"enum","enums":[""]}]},"rollNumber":{"dataType":"double"},"class":{"dataType":"union","subSchemas":[{"dataType":"enum","enums":[1]},{"dataType":"enum","enums":[2]},{"dataType":"enum","enums":[3]},{"dataType":"enum","enums":[4]},{"dataType":"enum","enums":[5]},{"dataType":"enum","enums":[6]},{"dataType":"enum","enums":[7]},{"dataType":"enum","enums":[8]},{"dataType":"enum","enums":[9]},{"dataType":"enum","enums":[10]},{"dataType":"enum","enums":[11]},{"dataType":"enum","enums":[12]}]},"section":{"dataType":"string"},"assessmentYear":{"dataType":"union","subSchemas":[{"dataType":"enum","enums":[2019]},{"dataType":"enum","enums":[2020]},{"dataType":"enum","enums":[2021]},{"dataType":"enum","enums":[2022]},{"dataType":"enum","enums":[2023]},{"dataType":"enum","enums":[2024]},{"dataType":"enum","enums":[2025]},{"dataType":"enum","enums":[2026]},{"dataType":"enum","enums":[2027]},{"dataType":"enum","enums":[2028]},{"dataType":"enum","enums":[2029]},{"dataType":"enum","enums":[2030]}]}},"validators":{}},
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "UserCreationParams": {
@@ -629,6 +632,33 @@ export function RegisterRoutes(app: Router) {
 
 
               const promise = controller.getAll.apply(controller, validatedArgs as any);
+              promiseHandler(controller, promise, response, undefined, next);
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        app.post('/api/students/bulk-upload',
+            authenticateMiddleware([{"jwt":["school"]}]),
+            upload.single('file'),
+            ...(fetchMiddlewares<RequestHandler>(StudentController)),
+            ...(fetchMiddlewares<RequestHandler>(StudentController.prototype.bulkUpload)),
+
+            function StudentController_bulkUpload(request: any, response: any, next: any) {
+            const args = {
+                    file: {"in":"formData","name":"file","required":true,"dataType":"file"},
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = getValidatedArgs(args, request, response);
+
+                const controller = new StudentController();
+
+
+              const promise = controller.bulkUpload.apply(controller, validatedArgs as any);
               promiseHandler(controller, promise, response, undefined, next);
             } catch (err) {
                 return next(err);
