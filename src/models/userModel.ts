@@ -1,6 +1,5 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
-import { number } from "joi";
 
 export enum UserRole {
     Admin = 'admin',

@@ -11,6 +11,8 @@ import { authRouter } from './routes/authRoutes';
 import { speechRouter } from "./routes/speechRoutes";
 import { schoolRouter } from "./routes/schoolRoutes";
 import { studentRouter } from "./routes/studentRoutes";
+import { examRouter } from "./routes/examRoutes";
+
 
 config();
 
@@ -58,11 +60,12 @@ app.use('/docs', swaggerUi.serve, async (_req: express.Request, res: express.Res
 });
 
 // Routes
-app.use('/api/users', userRouter);
 app.use('/api/auth', authRouter);
+app.use('/api/users', userRouter);
 app.use('/api/speech', speechRouter);
 app.use('/api/schools', schoolRouter);
 app.use('/api/students', studentRouter);
+app.use('/api/exams', examRouter);
 
 // Error handling middleware
 app.use(errorHandler);
