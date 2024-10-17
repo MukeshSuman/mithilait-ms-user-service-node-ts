@@ -34,10 +34,17 @@ export class ExamService implements IExamService {
     async getById(id: string, currUser?: IUser): Promise<IExam> {
         const exam = await Exam.findById(id);
         if (!exam || exam.isDeleted) throw new ApiError(ApiErrors.NotFound);
-        const data = exam.toJSON();
-        const queryObj: any = { schoolId: exam.schoolId };
-        User.find(queryObj);
-        return exam;
+        const data:any = exam.toJSON();
+        let students:any = []
+        if(data.schoolId){
+            const queryObj: any = { schoolId: new mongoose.Types.ObjectId(exam.schoolId) };
+            const result = await User.find(queryObj);
+            if(result.length){
+                students = result
+            }
+        }
+        data.students = students
+        return data;
     }
 
     async getAll(options: PaginationOptions, type: string, currUser?: IUser): Promise<PaginationResult<IExam>> {
