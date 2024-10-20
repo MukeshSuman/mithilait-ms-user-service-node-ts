@@ -1,9 +1,10 @@
 import { IExam } from "../models/examModel";
 import { IUser } from "../models/userModel";
-import { ExamService } from '../services';
 import { ApiResponse } from '../utils/apiResponse';
 import { PaginationOptions, PaginationResult } from '../utils/pagination';
-import { Body, Controller, Get, Path, Post, Put, Delete, Query, Route, Security, Tags, Request, Hidden } from 'tsoa';
+import { Body, Controller, Get, Path, Post, Put, Delete, Query, Route, Security, Tags, Request, Hidden, FormField, UploadedFile } from 'tsoa';
+import { ExamService, ReportService, FileService } from "src/services";
+// import mongoose from "mongoose";
 
 interface ExamCreationParams {
     title: string;
@@ -20,10 +21,14 @@ interface ExamCreationParams {
 @Tags('Exam')
 export class ExamController extends Controller {
     private examService: ExamService;
+    private fileService: FileService;
+    private reportService: ReportService
 
     constructor() {
         super();
         this.examService = new ExamService();
+        this.fileService = new FileService();
+        this.reportService = new ReportService();
     }
 
     @Post()
@@ -68,8 +73,26 @@ export class ExamController extends Controller {
         @Path() id: string,
         @Query() @Hidden() currUser?: IUser
     ): Promise<ApiResponse<IUser | null>> {
-        const result = await this.examService.getById(id, currUser);
+        const result = await this.examService.getByIdWithOtherDetails(id, { mapStudentsAndReports: true }, currUser);
         return new ApiResponse(200, true, 'Exam retrieved successfully', result);
+    }
+
+    @Post('{id}/submit/{studentId}')
+    @Security('jwt', ['admin', 'teacher', 'student'])
+    public async submitExam(
+        @Path() id: string,
+        @Path() studentId: string,
+        @UploadedFile() file: Express.Multer.File,
+        @Query() @Hidden() currUser?: IUser
+    ): Promise<ApiResponse<IUser | null>> {
+        const fileResult = await this.fileService.saveFile(file, currUser);
+        const result = await this.examService.submitExam(id, studentId, {
+            fileId: fileResult.id,
+            status: 'InProgress'
+        }, currUser)
+        const examResults:any = await this.examService.getById(id)
+        delete examResults.students
+        return new ApiResponse(200, true, 'Exam submitted successfully', {...examResults, report: result, file: fileResult});
     }
 
     @Get()

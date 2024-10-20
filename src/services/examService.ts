@@ -2,9 +2,11 @@ import { IUser, UserRole, User } from '../models/userModel';
 import { IExam, Exam } from '../models/examModel';
 import { ApiError } from '../utils/apiResponse';
 import { PaginationOptions, PaginationResult } from '../utils/pagination';
-import { IExamService } from "../interfaces";
+import { IExamFilter, IExamService, ISubitExamData } from "../interfaces";
 import { ApiErrors } from "../constants";
 import mongoose from "mongoose";
+import { ReportService } from './reportService';
+import { IReport, Report } from 'src/models/reportModel';
 
 export class ExamService implements IExamService {
     async create(data: Partial<IExam>, currUser?: IUser): Promise<IExam> {
@@ -35,17 +37,65 @@ export class ExamService implements IExamService {
         const exam = await Exam.findById(id);
         if (!exam || exam.isDeleted) throw new ApiError(ApiErrors.NotFound);
         const data:any = exam.toJSON();
-        let students:any = []
-        if(data.schoolId){
+        // let students:any = []
+        // if(data.schoolId){
+        //     const queryObj: any = { schoolId: new mongoose.Types.ObjectId(exam.schoolId) };
+        //     const result = await User.find(queryObj);
+        //     if(result.length){
+        //         students = result
+        //     }
+        // }
+        // data.students = students
+        return data;
+    }
+
+    async getByIdWithOtherDetails(id: string, filter: IExamFilter, currUser?: IUser): Promise<any> {
+        const exam = await Exam.findById(id);
+        if (!exam || exam.isDeleted) throw new ApiError(ApiErrors.NotFound);
+        const data:any = exam.toJSON();
+        let students:IUser[] = []
+        let reports: IReport[] = []
+        let studentReportMapper: any[] = []
+        const studentMapper: Map<string, IUser> = new Map();
+        if((filter.students || filter.mapStudentsAndReports) && data.schoolId){
             const queryObj: any = { schoolId: new mongoose.Types.ObjectId(exam.schoolId) };
             const result = await User.find(queryObj);
             if(result.length){
-                students = result
+                students = result;
+                result.map(student => {
+                    studentMapper.set(student.id, student)
+                })
             }
         }
+
+        if(filter.reports || filter.mapStudentsAndReports){
+            const queryObj: any = { examId: new mongoose.Types.ObjectId(id) };
+            const result = await Report.find(queryObj);
+            if(result.length){
+                reports = result
+            }
+        }
+
+        if(filter.mapStudentsAndReports){
+            reports.map(report => {
+                const reportJson = report.toJSON()
+                const stu = studentMapper.get(reportJson.studentId)
+                if(stu){
+                    studentReportMapper.push({
+                      ...stu,
+                      ...reportJson,
+                      reportId: reportJson.id,
+                    })
+                }
+            })
+            data.studentWithReport = studentReportMapper;
+        } 
+
         data.students = students
         return data;
     }
+
+    
 
     async getAll(options: PaginationOptions, type: string, currUser?: IUser): Promise<PaginationResult<IExam>> {
         if (currUser?.role && ![UserRole.Teacher, UserRole.School, UserRole.Admin].includes(currUser?.role)) throw new ApiError(ApiErrors.InsufficientPermissions);
@@ -89,5 +139,23 @@ export class ExamService implements IExamService {
             totalItems: total,
             totalPages: Math.ceil(total / pageSize),
         };
+    }
+
+    async submitExam(id: string, studentId: string, data: ISubitExamData, currUser?: IUser): Promise<any> {
+        const reportService = new ReportService()
+        const reportData:any = {
+            examId: new mongoose.Types.ObjectId(id),
+            studentId: new mongoose.Types.ObjectId(studentId),
+            status: data.status,
+            remarks: data.remarks,
+            result: data.result,
+            score: data.score,
+            apiReponse: data.apiReponse
+        }
+        if(data.fileId){
+            reportData.fileId = new mongoose.Types.ObjectId(data.fileId)
+        }
+        const reportResult = await reportService.create(reportData, currUser)
+        return reportResult;
     }
 }

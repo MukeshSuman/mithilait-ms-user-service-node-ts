@@ -23,19 +23,19 @@ export const errorHandler = (
             field: error.path,
             message: error.message,
         }));
-        return res.status(400).json(new ApiResponse(500, false, 'Validation Error', null, errors));
+        return res.status(400).json(new ApiResponse(400, false, 'Validation Error', null, errors));
     }
 
     // Handle Mongoose CastError (e.g., invalid ObjectId)
     if (err instanceof MongooseError.CastError) {
-        return res.status(400).json(new ApiResponse(500, false, 'Invalid ID', null, err.message));
+        return res.status(400).json(new ApiResponse(400, false, 'Invalid ID', null, err.message));
     }
 
     // Handle MongoDB duplicate key error
     if (err instanceof MongoError && err.code === 11000) {
         const errMongo: any = err;
         const field = Object.keys(errMongo?.keyPattern)[0];
-        return res.status(409).json(new ApiResponse(500, false, 'Duplicate Key Error', null, `The ${field} already exists.`));
+        return res.status(409).json(new ApiResponse(409, false, 'Duplicate Key Error', null, `The ${field} already exists.`));
     }
 
     // Handle other MongoDB errors
@@ -46,7 +46,7 @@ export const errorHandler = (
     // Handle custom ApiError
     if (err instanceof Error && 'statusCode' in err) {
         const apiError: any = err;
-        return res.status(apiError.statusCode || 500).json(new ApiResponse(500, false, apiError.message || 'Internal Server Error', null, apiError.errors));
+        return res.status(apiError.statusCode || 500).json(new ApiResponse(apiError.statusCode || 500, false, apiError.message || 'Internal Server Error', null, apiError.errors));
     }
 
     // Handle other errors
