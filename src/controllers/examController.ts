@@ -3,7 +3,7 @@ import { IUser } from "../models/userModel";
 import { ApiResponse } from '../utils/apiResponse';
 import { PaginationOptions, PaginationResult } from '../utils/pagination';
 import { Body, Controller, Get, Path, Post, Put, Delete, Query, Route, Security, Tags, Request, Hidden, FormField, UploadedFile } from 'tsoa';
-import { ExamService, ReportService, FileService } from "src/services";
+import { ExamService, ReportService, FileService } from "../services";
 // import mongoose from "mongoose";
 
 interface ExamCreationParams {

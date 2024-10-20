@@ -6,7 +6,7 @@ import { IExamFilter, IExamService, ISubitExamData } from "../interfaces";
 import { ApiErrors } from "../constants";
 import mongoose from "mongoose";
 import { ReportService } from './reportService';
-import { IReport, Report } from 'src/models/reportModel';
+import { IReport, Report } from '../models/reportModel';
 
 export class ExamService implements IExamService {
     async create(data: Partial<IExam>, currUser?: IUser): Promise<IExam> {

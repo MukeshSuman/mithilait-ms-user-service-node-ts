@@ -12,6 +12,7 @@ import { speechRouter } from "./routes/speechRoutes";
 import { schoolRouter } from "./routes/schoolRoutes";
 import { studentRouter } from "./routes/studentRoutes";
 import { examRouter } from "./routes/examRoutes";
+import path from "path";
 
 
 config();
@@ -44,6 +45,10 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 app.use(requestLogger);
+
+// Serve the uploads folder statically
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+
 
 // Connect to MongoDB
 connectDB();

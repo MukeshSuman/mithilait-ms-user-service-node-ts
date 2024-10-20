@@ -5,7 +5,7 @@ import { PaginationOptions, PaginationResult } from '../utils/pagination';
 import { IFileService } from "../interfaces";
 import { ApiErrors } from "../constants";
 import mongoose from "mongoose";
-import { getFileInfo } from 'src/utils/file';
+import { getFileInfo } from '../utils/file';
 
 export class FileService implements IFileService {
 

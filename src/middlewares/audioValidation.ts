@@ -1,9 +1,9 @@
 import multer from "multer";
 import { Request, Response, NextFunction } from "express";
-import { ApiResponse } from "src/utils/apiResponse";
+import { ApiResponse } from "../utils/apiResponse";
 import fs from "fs";
 import path from "path";
-import { UserRole } from "src/models/userModel";
+import { UserRole } from "../models/userModel";
 
 
 // Create a multer storage that dynamically creates folder based on a request-provided path

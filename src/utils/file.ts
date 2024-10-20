@@ -1,7 +1,4 @@
-// fileName: string;
-//     fileType: string;
-//     fileSize: number;
-//     fileUrl: string;
+import path from "path";
 
 export const getFileInfo = (file: Express.Multer.File) => {
 
@@ -11,10 +8,13 @@ export const getFileInfo = (file: Express.Multer.File) => {
         })
     }
 
+    const relativePath = path.relative(__dirname, file.path).replaceAll('../', '') ;
+
     return {
         fileName: file.originalname,
         fileType: file.mimetype,
         fileSize: file.size,
-        fileUrl: file.path
+        fileUrl: relativePath || file.path,
+        fullPath: file.path
     }
 }
