@@ -73,7 +73,9 @@ export class ExamController extends Controller {
         @Path() id: string,
         @Query() @Hidden() currUser?: IUser
     ): Promise<ApiResponse<IUser | null>> {
-        const result = await this.examService.getByIdWithOtherDetails(id, { mapStudentsAndReports: true }, currUser);
+        // const result = await this.examService.getByIdWithOtherDetails(id, { mapStudentsAndReports: true }, currUser);
+        const result = await this.examService.getSingleExamWithStudentsReportAndPagination(id, currUser);
+
         return new ApiResponse(200, true, 'Exam retrieved successfully', result);
     }
 
@@ -105,7 +107,8 @@ export class ExamController extends Controller {
         @Query() @Hidden() currUser?: IUser
     ): Promise<ApiResponse<PaginationResult<IExam>>> {
         const options: PaginationOptions = { pageNumber, pageSize, query };
-        const result = await this.examService.getAll(options, type || '', currUser);
+        // const result = await this.examService.getAll(options, type || '', currUser);
+        const result =  await this.examService.getExamWithStudentsReportAndPagination(options, type || '', currUser)
         return new ApiResponse(200, true, 'Exam retrieved successfully', result);
     }
 }

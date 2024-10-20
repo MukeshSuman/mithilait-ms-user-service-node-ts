@@ -27,7 +27,8 @@ const reportSchema = new Schema<IReport>(
         score: { type: Number },
         remarks: { type: String },
         apiReponse: { type: Object },
-        result: { type: Object }
+        result: { type: Object },
+        isDeleted: {type: Boolean, default: false}
     },
     {
         timestamps: true, // Automatically manage createdAt and updatedAt fields

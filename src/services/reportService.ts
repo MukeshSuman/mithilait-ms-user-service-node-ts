@@ -17,6 +17,16 @@ export class ReportService implements IReportService {
         if (currUser?.role === UserRole.School) {
             saveData.schoolId = new mongoose.Types.ObjectId(currUser?.id);
         };
+
+        const checkIsExist = await Report.findOne({
+            studentId: saveData.studentId,
+            examId: data.examId
+        })
+
+        if(checkIsExist && checkIsExist.id){
+            return await this.update(checkIsExist.id, saveData, currUser)
+        }
+
         const result = new Report(saveData);
         await result.save();
         return result;
