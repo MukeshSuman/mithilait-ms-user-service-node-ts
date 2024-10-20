@@ -274,7 +274,7 @@ export class ExamService implements IExamService {
                 // Step 3: Lookup students based on class, and if section is present, match by section
                 $lookup: {
                     from: 'users', // The name of the User collection
-                    let: { classVar: '$class', sectionVar: '$section' }, // Use class and section from the Exam
+                    let: { classVar: '$class', sectionVar: '$section', examId: '$_id' }, // Use class, section, and examId from the Exam
                     pipeline: [
                         {
                             $match: {
@@ -300,7 +300,7 @@ export class ExamService implements IExamService {
                                 from: 'reports',  // The name of the Report collection
                                 localField: '_id',  // The student's ID
                                 foreignField: 'studentId',  // The field in Report to match student
-                                let: { examIdVar: '$_id' },  // Bind the examId to be used in the pipeline below
+                                let: { examIdVar: '$$examId' },  // Bind the examId from the parent pipeline
                                 pipeline: [
                                     {
                                         $match: {
@@ -328,8 +328,15 @@ export class ExamService implements IExamService {
                         {
                             // Step 6: Add a computed field to show if the student has taken the exam
                             $addFields: {
-                                hasTakenExam: { $cond: { if: { $gt: [{ $size: '$report' }, 0] }, then: true, else: false } } // Check if the student has taken the exam
+                                hasTakenExam: { $cond: { if: { $gt: [{ $size: '$report' }, 0] }, then: true, else: false } }, // Check if the student has taken the exam
+                                name: { $concat: ['$firstName', ' ', '$lastName'] } // Concatenate firstName and lastName to create the name
                             },
+                        },
+                        {
+                            // Step 6.1 : Rename _id to id for students
+                            $addFields: {
+                                id: '$_id'
+                            }
                         },
                     ],
                     as: 'students', // Embed the students array inside each exam
@@ -360,6 +367,12 @@ export class ExamService implements IExamService {
                 }
             },
             {
+                // Step 7.1 : Rename _id to id for students
+                $addFields: {
+                    id: '$_id'
+                }
+            },
+            {
                 // Step 8: Pagination: Skip and limit the exam results
                 $skip: skip,
             },
@@ -368,11 +381,12 @@ export class ExamService implements IExamService {
             },
         ];
 
+
         // Execute the aggregation query
         const results = await Exam.aggregate(pipeline).exec();
 
         return {
-            exams: results, // Contains the exam list, each with students' reports, file information, and counts
+            items: results, // Contains the exam list, each with students' reports, file information, and counts
             totalItems,     // Total number of exams
             totalPages,     // Total number of pages
             pageNumber,
@@ -391,6 +405,7 @@ export class ExamService implements IExamService {
         const skip = (pageNumber - 1) * pageSize;
 
         // Aggregation pipeline
+        // Aggregation pipeline
         const pipeline = [
             {
                 // Step 1: Match the specific exam by examId
@@ -401,10 +416,10 @@ export class ExamService implements IExamService {
                 },
             },
             {
-                // Step 2: Lookup students based on class, and if section is present, match by section
+                // Step 3: Lookup students based on class, and if section is present, match by section
                 $lookup: {
                     from: 'users', // The name of the User collection
-                    let: { classVar: '$class', sectionVar: '$section' }, // Use class and section from the Exam
+                    let: { classVar: '$class', sectionVar: '$section', examId: '$_id' }, // Use class, section, and examId from the Exam
                     pipeline: [
                         {
                             $match: {
@@ -425,12 +440,12 @@ export class ExamService implements IExamService {
                             },
                         },
                         {
-                            // Step 3: Lookup the Report for the student and the current exam
+                            // Step 4: Lookup the Report for the student and the current exam
                             $lookup: {
                                 from: 'reports',  // The name of the Report collection
                                 localField: '_id',  // The student's ID
                                 foreignField: 'studentId',  // The field in Report to match student
-                                let: { examIdVar: '$_id' },  // Bind the examId to be used in the pipeline below
+                                let: { examIdVar: '$$examId' },  // Bind the examId from the parent pipeline
                                 pipeline: [
                                     {
                                         $match: {
@@ -447,7 +462,7 @@ export class ExamService implements IExamService {
                             },
                         },
                         {
-                            // Step 4: Lookup file associated with the report, if any
+                            // Step 5: Lookup file associated with the report, if any
                             $lookup: {
                                 from: 'files',  // The name of the File collection
                                 localField: 'report.fileId',  // Match the fileId in the report
@@ -456,17 +471,54 @@ export class ExamService implements IExamService {
                             },
                         },
                         {
-                            // Step 5: Add a computed field to show if the student has taken the exam
+                            // Step 6: Add a computed field to show if the student has taken the exam
                             $addFields: {
-                                hasTakenExam: { $gt: [{ $size: '$report' }, 0] },  // Check if the student has taken the exam
+                                hasTakenExam: { $cond: { if: { $gt: [{ $size: '$report' }, 0] }, then: true, else: false } }, // Check if the student has taken the exam
+                                name: { $concat: ['$firstName', ' ', '$lastName'] } // Concatenate firstName and lastName to create the name
                             },
                         },
+                        {
+                            // Step 6.1 : Rename _id to id for students
+                            $addFields: {
+                                id: '$_id'
+                            }
+                        }
                     ],
                     as: 'students', // Embed the students array inside each exam
                 },
             },
             {
-                // Step 6: Pagination: Skip and limit the exam results
+                // Step 7: Calculate total students, students who took the exam, and students who did not
+                $addFields: {
+                    totalStudents: { $size: '$students' }, // Total number of students for the exam
+                    totalStudentsTakeExam: {
+                        $size: {
+                            $filter: {
+                                input: '$students', // Filter the students who have taken the exam
+                                as: 'student',
+                                cond: { $eq: ['$$student.hasTakenExam', true] } // Only count those who have taken the exam
+                            }
+                        }
+                    },
+                    totalStudentsNotTakeExam: {
+                        $size: {
+                            $filter: {
+                                input: '$students', // Filter the students who have not taken the exam
+                                as: 'student',
+                                cond: { $eq: ['$$student.hasTakenExam', false] } // Only count those who have not taken the exam
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                // Step 7.1 : Rename _id to id for students
+                $addFields: {
+                    id: '$_id'
+                }
+            },
+            {
+                // Step 8: Pagination: Skip and limit the exam results
                 $skip: skip,
             },
             {
@@ -493,9 +545,9 @@ export class ExamService implements IExamService {
 
         return {
             ...results[0], // Contains the single exam, with students' reports and file information
-            totalStudents,
-            totalStudentsTakeExam,
-            totalStudentsNotTakeExam,
+            // totalStudents,
+            // totalStudentsTakeExam,
+            // totalStudentsNotTakeExam,
             //   page: pageNumber,
             //   pageSize,
         };
