@@ -317,7 +317,14 @@ export class ExamService implements IExamService {
                             },
                         },
                         {
-                            // Step 5: Lookup file associated with the report, if any
+                            // Step 5: Unwind the report array to handle one report per student
+                            $unwind: {
+                                path: '$report',
+                                preserveNullAndEmptyArrays: true // Allow students without reports
+                            }
+                        },
+                        {
+                            // Step 6: Lookup file associated with the report, if any
                             $lookup: {
                                 from: 'files',  // The name of the File collection
                                 localField: 'report.fileId',  // Match the fileId in the report
@@ -326,24 +333,39 @@ export class ExamService implements IExamService {
                             },
                         },
                         {
-                            // Step 6: Add a computed field to show if the student has taken the exam
+                            // Step 7: Unwind the file array to handle one file per report
+                            $unwind: {
+                                path: '$file',
+                                preserveNullAndEmptyArrays: true // Allow reports without files
+                            }
+                        },
+                        {
+                            // Step 8: Add a computed field to show if the student has taken the exam and concatenate firstName and lastName into name
                             $addFields: {
-                                hasTakenExam: { $cond: { if: { $gt: [{ $size: '$report' }, 0] }, then: true, else: false } }, // Check if the student has taken the exam
+                                hasTakenExam: { $cond: { if: { $ifNull: ['$report', null] }, then: true, else: false } }, // Check if the student has taken the exam
+                                // hasTakenExam: { $cond: { if: { $gt: [{ $size: '$report' }, 0] }, then: true, else: false } }, // Check if the student has taken the exam
                                 name: { $concat: ['$firstName', ' ', '$lastName'] } // Concatenate firstName and lastName to create the name
                             },
                         },
                         {
-                            // Step 6.1 : Rename _id to id for students
+                            // Step 9: Rename _id to id for students
                             $addFields: {
                                 id: '$_id'
                             }
                         },
+                        //   {
+                        //     $project: {
+                        //       _id: 0, // Remove the _id field for students
+                        //       firstName: 0, // Remove firstName after concatenating
+                        //       lastName: 0,  // Remove lastName after concatenating
+                        //     }
+                        //   }
                     ],
                     as: 'students', // Embed the students array inside each exam
                 },
             },
             {
-                // Step 7: Calculate total students, students who took the exam, and students who did not
+                // Step 10: Calculate total students, students who took the exam, and students who did not
                 $addFields: {
                     totalStudents: { $size: '$students' }, // Total number of students for the exam
                     totalStudentsTakeExam: {
@@ -367,13 +389,19 @@ export class ExamService implements IExamService {
                 }
             },
             {
-                // Step 7.1 : Rename _id to id for students
+                // Step 11: Rename _id to id for the exam
                 $addFields: {
                     id: '$_id'
                 }
             },
+            // {
+            //   // Step 12: Remove _id field for exams
+            //   $project: {
+            //     _id: 0 // Remove the _id field for the exams
+            //   }
+            // },
             {
-                // Step 8: Pagination: Skip and limit the exam results
+                // Step 13: Pagination: Skip and limit the exam results
                 $skip: skip,
             },
             {
@@ -405,10 +433,9 @@ export class ExamService implements IExamService {
         const skip = (pageNumber - 1) * pageSize;
 
         // Aggregation pipeline
-        // Aggregation pipeline
         const pipeline = [
             {
-                // Step 1: Match the specific exam by examId
+                // Step 2: Match all active exams
                 $match: {
                     _id: new mongoose.Types.ObjectId(examId),      // Match the provided examId
                     isDeleted: false, // Ensure the exam is not deleted
@@ -462,7 +489,14 @@ export class ExamService implements IExamService {
                             },
                         },
                         {
-                            // Step 5: Lookup file associated with the report, if any
+                            // Step 5: Unwind the report array to handle one report per student
+                            $unwind: {
+                                path: '$report',
+                                preserveNullAndEmptyArrays: true // Allow students without reports
+                            }
+                        },
+                        {
+                            // Step 6: Lookup file associated with the report, if any
                             $lookup: {
                                 from: 'files',  // The name of the File collection
                                 localField: 'report.fileId',  // Match the fileId in the report
@@ -471,24 +505,39 @@ export class ExamService implements IExamService {
                             },
                         },
                         {
-                            // Step 6: Add a computed field to show if the student has taken the exam
+                            // Step 7: Unwind the file array to handle one file per report
+                            $unwind: {
+                                path: '$file',
+                                preserveNullAndEmptyArrays: true // Allow reports without files
+                            }
+                        },
+                        {
+                            // Step 8: Add a computed field to show if the student has taken the exam and concatenate firstName and lastName into name
                             $addFields: {
-                                hasTakenExam: { $cond: { if: { $gt: [{ $size: '$report' }, 0] }, then: true, else: false } }, // Check if the student has taken the exam
+                                hasTakenExam: { $cond: { if: { $ifNull: ['$report', null] }, then: true, else: false } }, // Check if the student has taken the exam
+                                //  hasTakenExam: { $cond: { if: { $gt: [{ $size: '$report' }, 0] }, then: true, else: false } }, // Check if the student has taken the exam
                                 name: { $concat: ['$firstName', ' ', '$lastName'] } // Concatenate firstName and lastName to create the name
                             },
                         },
                         {
-                            // Step 6.1 : Rename _id to id for students
+                            // Step 9: Rename _id to id for students
                             $addFields: {
                                 id: '$_id'
                             }
-                        }
+                        },
+                        //   {
+                        //     $project: {
+                        //       _id: 0, // Remove the _id field for students
+                        //       firstName: 0, // Remove firstName after concatenating
+                        //       lastName: 0,  // Remove lastName after concatenating
+                        //     }
+                        //   }
                     ],
                     as: 'students', // Embed the students array inside each exam
                 },
             },
             {
-                // Step 7: Calculate total students, students who took the exam, and students who did not
+                // Step 10: Calculate total students, students who took the exam, and students who did not
                 $addFields: {
                     totalStudents: { $size: '$students' }, // Total number of students for the exam
                     totalStudentsTakeExam: {
@@ -512,13 +561,19 @@ export class ExamService implements IExamService {
                 }
             },
             {
-                // Step 7.1 : Rename _id to id for students
+                // Step 11: Rename _id to id for the exam
                 $addFields: {
                     id: '$_id'
                 }
             },
+            // {
+            //   // Step 12: Remove _id field for exams
+            //   $project: {
+            //     _id: 0 // Remove the _id field for the exams
+            //   }
+            // },
             {
-                // Step 8: Pagination: Skip and limit the exam results
+                // Step 13: Pagination: Skip and limit the exam results
                 $skip: skip,
             },
             {
