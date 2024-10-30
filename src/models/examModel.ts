@@ -2,7 +2,7 @@ import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IExam extends Document {
     title: string;
-    type: string;
+    type: 'Speaking' | 'Reading' | 'Writing' | 'Listening' | 'Typing';
     topic: string;
     duration: number;
     class: number;

@@ -12,10 +12,15 @@ import { speechRouter } from "./routes/speechRoutes";
 import { schoolRouter } from "./routes/schoolRoutes";
 import { studentRouter } from "./routes/studentRoutes";
 import { examRouter } from "./routes/examRoutes";
+import { initCronJobs } from './job';
 import path from "path";
 
 
-config();
+config({
+    debug: true
+});
+
+console.log("ddd AZURE_SPEECH_REGION", process.env.AZURE_SPEECH_REGION)
 
 const app = express();
 
@@ -74,5 +79,6 @@ app.use('/api/exams', examRouter);
 
 // Error handling middleware
 app.use(errorHandler);
+initCronJobs()
 
 export { app };

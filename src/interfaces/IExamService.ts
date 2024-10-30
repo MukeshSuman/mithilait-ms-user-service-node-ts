@@ -3,7 +3,7 @@ import { IExam } from '../models/examModel';
 import { IBaseService } from './IBaseService';
 import { PaginationOptions } from 'src/utils/pagination';
 
-export interface ISubitExamData {
+export interface ISubmitExamData {
     status: 'Start' | 'Pending' | 'InProgress' | 'Completed';
     fileId?: string;
     reportId?: string;
@@ -14,14 +14,20 @@ export interface ISubitExamData {
 }
 
 export interface IExamFilter {
-    students?: boolean;
-    reports?: boolean;
-    mapStudentsAndReports?: boolean;
+    id?: string;
+    title?: string;
+    type?: 'Speaking' | 'Reading' | 'Writing' | 'Listening' | 'Typing';
+    topic?: string;
+    duration?: number;
+    class?: number;
+    description?: string;
+    section?: string;
+    isPractice?: boolean;
 }
 
 export interface IExamService extends IBaseService<IExam> {
-    submitExam(id: string, studentId: string, data: ISubitExamData, currUser?: IUser): Promise<any>;
-    getByIdWithOtherDetails(id: string, filter: IExamFilter, currUser?: IUser): Promise<any>;
+    submitExam(id: string, studentId: string, data: ISubmitExamData, currUser?: IUser): Promise<any>;
+    // getByIdWithOtherDetails(id: string, filter: IExamFilter, currUser?: IUser): Promise<any>;
     getSingleExamWithStudentsReportAndPagination(id: string, currUser?: IUser): Promise<any>;
-    getExamWithStudentsReportAndPagination(options: PaginationOptions, type?: string, currUser?: IUser): Promise<any>
+    getExamWithStudentsReportAndPagination(options: PaginationOptions, filter: IExamFilter, currUser?: IUser): Promise<any>
 }

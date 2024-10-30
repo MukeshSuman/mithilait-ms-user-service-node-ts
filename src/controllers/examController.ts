@@ -8,7 +8,7 @@ import { ExamService, ReportService, FileService } from "../services";
 
 interface ExamCreationParams {
     title: string;
-    type: string;
+    type: "Reading" | "Speaking" | "Writing" | "Listening" | "Typing";
     topic: string;
     duration: number;
     class: number;
@@ -104,11 +104,12 @@ export class ExamController extends Controller {
         @Query() pageSize: number = 20,
         @Query() query?: string,
         @Query() type?: string,
+        @Query() isPractice?: boolean,
         @Query() @Hidden() currUser?: IUser
     ): Promise<ApiResponse<PaginationResult<IExam>>> {
         const options: PaginationOptions = { pageNumber, pageSize, query };
         // const result = await this.examService.getAll(options, type || '', currUser);
-        const result =  await this.examService.getExamWithStudentsReportAndPagination(options, type || '', currUser)
+        const result =  await this.examService.getExamWithStudentsReportAndPagination(options,{ type, isPractice: isPractice }, currUser)
         return new ApiResponse(200, true, 'Exam retrieved successfully', result);
     }
 }

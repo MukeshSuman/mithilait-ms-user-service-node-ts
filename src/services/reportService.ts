@@ -92,4 +92,24 @@ export class ReportService implements IReportService {
             totalPages: Math.ceil(total / pageSize),
         };
     }
+
+    async getLimitedReportIds (limit: number = 10): Promise<Array<any>> {
+        try {
+            // Query MongoDB for documents in MyModel, limit the results, and return only `_id`
+            const ids = await Report.find({
+                status: "InProgress"
+            }, { _id: 1 })
+                .limit(limit)
+                .lean();
+    
+            // Extract the `_id` values from the result
+            const idArray = ids.map(doc => doc._id);
+    
+            console.log(idArray);
+            return idArray;
+        } catch (error) {
+            console.error('Error fetching limited document IDs:', error);
+            throw error;
+        }
+    };
 }

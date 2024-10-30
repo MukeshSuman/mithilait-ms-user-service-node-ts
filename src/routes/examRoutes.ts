@@ -7,6 +7,7 @@ import { IUser, UserRole } from "../models/userModel";
 import { ApiError } from "../utils/apiResponse";
 import { errorHandler } from "../middlewares/errorHandler";
 import { audioUpload, audioValidationErrorHandler } from "../middlewares/audioValidation";
+import { toBoolean } from '../utils/mix';
 // import { NextFunction } from 'express-serve-static-core';
 
 const router = express.Router();
@@ -74,7 +75,13 @@ router.get('/', authMiddleware([UserRole.Admin, UserRole.School]), async (req, r
         const { pageNumber = 1, pageSize = 20 } = req.query;
         const query = req.query.query || "";
         const type = req.query.type || "";
-        const result = await examController.getAll(+pageNumber, +pageSize, query as string, type as string, req.user as IUser);
+        let isPractice = false;
+
+        if(req.query.hasOwnProperty("isPractice") ){
+            isPractice = toBoolean(req.query.isPractice)
+        }
+
+        const result = await examController.getAll(+pageNumber, +pageSize, query as string, type as string, isPractice as boolean, req.user as IUser);
         res.json(result);
     } catch (error: ApiError | any) {
         errorHandler(error, req, res, next);

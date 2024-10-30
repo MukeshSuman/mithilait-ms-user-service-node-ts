@@ -9,6 +9,7 @@ import { IUser, UserRole } from '../models/userModel';
 import csvParser from "csv-parser";
 import fs from 'fs';
 import { ApiErrors } from "../constants";
+import { generateFakeEmail, generateFakeUsername } from '../utils/mix';
 
 const upload = multer({ dest: 'upload/bulk-upload' });
 
@@ -17,7 +18,7 @@ interface StudentCreationParams {
     username: string;
     firstName: string;
     lastName: string;
-    email: string;
+    // email: string;
     password: string;
     phoneNumber?: string;
     gender?: 'Male' | 'Female' | 'Other' | '';
@@ -44,6 +45,8 @@ export class StudentController extends Controller {
         @Query() @Hidden() currUser?: IUser): Promise<ApiResponse<IUser | null>> {
         const data = {
             ...userData,
+            username: !userData.username ? generateFakeUsername() : userData.username,
+            email: generateFakeEmail(),
             role: UserRole.Student
         };
         const user = await this.userService.createUser(data, currUser);

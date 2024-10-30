@@ -19,7 +19,7 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
         );
 
         // Log headers
-        console.log(chalk.magenta('Headers:'), req.headers);
+        // console.log(chalk.magenta('Headers:'), req.headers);
 
         // Log query parameters
         if (Object.keys(req.query).length > 0) {

@@ -84,7 +84,7 @@ export class UserService implements IUserService {
         }
 
         const [users, total] = await Promise.all([
-            User.find(queryObj).skip(skip).limit(pageSize),
+            User.find(queryObj).skip(skip).limit(pageSize).sort({ createdAt: -1 }),
             User.countDocuments(queryObj),
         ]);
 

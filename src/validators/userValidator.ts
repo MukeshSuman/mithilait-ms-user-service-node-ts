@@ -53,7 +53,9 @@ export const updateSchoolSchema = baseUserSchemaOptional.keys({
 });
 
 // Schema for creating a student
-export const createStudentSchema = baseUserSchema.concat(baseUserSchemaOptional).keys({
+export const createStudentSchema = baseUserSchemaOptional.keys({
+    username: Joi.string().optional(),
+    password: Joi.string().optional(),
     rollNumber: Joi.number().integer().min(1).required(),
     class: Joi.number().integer().min(1).max(12).required(),
     section: Joi.string().valid(...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')).required(),
@@ -62,8 +64,8 @@ export const createStudentSchema = baseUserSchema.concat(baseUserSchemaOptional)
 
 // Schema for updating a student
 export const updateStudentSchema = baseUserSchemaOptional.keys({
-    username: Joi.string().optional(),
-    email: Joi.string().email().optional(),
+    // username: Joi.string().optional(),
+    // email: Joi.string().email().optional(),
     rollNumber: Joi.number().integer().min(1).optional(),
     class: Joi.number().integer().min(1).max(12).optional(),
     section: Joi.string().valid(...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')).optional(),
