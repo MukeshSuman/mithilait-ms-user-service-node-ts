@@ -538,7 +538,7 @@ export class SpeechService {
           this.reportService.update(reportId, {
             status: "Completed",
             reason: "",
-            apiReponse: pronunciation_result,
+            apiResponse: pronunciation_result,
             result: {
               accuracyScore: pronunciation_result.accuracyScore,
               completenessScore: pronunciation_result.completenessScore,
@@ -546,6 +546,7 @@ export class SpeechService {
               pronunciationScore: pronunciation_result.pronunciationScore,
               prosodyScore: pronunciation_result.prosodyScore,
             },
+            takenCount: 1,
           });
           cb(pronunciation_result, undefined);
 

@@ -1,7 +1,7 @@
 import { IUser } from 'src/models/userModel';
 import { IExam } from '../models/examModel';
 import { IBaseService } from './IBaseService';
-import { PaginationOptions } from 'src/utils/pagination';
+import { PaginationQuery } from 'src/utils/pagination';
 
 export interface ISubmitExamData {
     status: 'Start' | 'Pending' | 'InProgress' | 'Completed';
@@ -9,7 +9,7 @@ export interface ISubmitExamData {
     reportId?: string;
     score?: number;
     remarks?:  string;
-    apiReponse?: Record<string, any>;
+    apiResponse?: Record<string, any>;
     result?: Record<string, any>;
 }
 
@@ -25,9 +25,21 @@ export interface IExamFilter {
     isPractice?: boolean;
 }
 
+type TSort = 1 | -1
+
+export interface IExamSort {
+    title?: TSort;
+    type?: TSort;
+    topic?: TSort;
+    duration?: TSort;
+    class?: TSort;
+    description?: TSort;
+    section?: TSort;
+}
+
 export interface IExamService extends IBaseService<IExam> {
     submitExam(id: string, studentId: string, data: ISubmitExamData, currUser?: IUser): Promise<any>;
     // getByIdWithOtherDetails(id: string, filter: IExamFilter, currUser?: IUser): Promise<any>;
     getSingleExamWithStudentsReportAndPagination(id: string, currUser?: IUser): Promise<any>;
-    getExamWithStudentsReportAndPagination(options: PaginationOptions, filter: IExamFilter, currUser?: IUser): Promise<any>
+    getExamWithStudentsReportAndPagination(options: PaginationQuery, filter: IExamFilter, currUser?: IUser): Promise<any>
 }

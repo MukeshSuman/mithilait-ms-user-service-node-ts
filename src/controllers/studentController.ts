@@ -1,7 +1,7 @@
 // import { Request } from 'express';
 import { UserService } from '../services/userService';
 import { ApiError, ApiResponse } from '../utils/apiResponse';
-import { PaginationOptions, PaginationResult } from '../utils/pagination';
+import { PaginationQuery, PaginationResult } from '../utils/pagination';
 import { Body, Controller, Get, Path, Post, Put, Delete, Query, Route, Security, Tags, Request, Hidden, UploadedFile } from 'tsoa';
 import multer from 'multer';
 import xlsx from 'xlsx';
@@ -96,7 +96,7 @@ export class StudentController extends Controller {
         @Query() role?: UserRole,
         @Query() @Hidden() currUser?: IUser
     ): Promise<ApiResponse<PaginationResult<IUser>>> {
-        const options: PaginationOptions = { pageNumber, pageSize, query };
+        const options: PaginationQuery = { pageNumber, pageSize, query };
         const result = await this.userService.listUsers(options, UserRole.Student, currUser);
         return new ApiResponse(200, true, 'Student retrieved successfully', result);
     }

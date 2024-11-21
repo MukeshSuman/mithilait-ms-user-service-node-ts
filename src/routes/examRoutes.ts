@@ -88,4 +88,16 @@ router.get('/', authMiddleware([UserRole.Admin, UserRole.School]), async (req, r
     }
 });
 
+router.get('/report/all', authMiddleware([UserRole.Admin, UserRole.School]), async (req, res, next) => {
+    try {
+
+        console.log('/exam/report', req.query)
+
+        const result = await examController.getReport(req.query as any, req.user as IUser);
+        res.json(result);
+    } catch (error: ApiError | any) {
+        errorHandler(error, req, res, next);
+    }
+});
+
 export { router as examRouter };

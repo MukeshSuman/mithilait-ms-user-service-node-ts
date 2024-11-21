@@ -1,7 +1,7 @@
 import { IUser, UserRole, User } from '../models/userModel';
 import { IFile, File } from '../models/fileModel';
 import { ApiError } from '../utils/apiResponse';
-import { PaginationOptions, PaginationResult } from '../utils/pagination';
+import { PaginationQuery, PaginationResult } from '../utils/pagination';
 import { IFileService } from "../interfaces";
 import { ApiErrors } from "../constants";
 import mongoose from "mongoose";
@@ -53,7 +53,7 @@ export class FileService implements IFileService {
         return data;
     }
 
-    async getAll(options: PaginationOptions, type: string, currUser?: IUser): Promise<PaginationResult<IFile>> {
+    async getAll(options: PaginationQuery, type: string, currUser?: IUser): Promise<PaginationResult<IFile>> {
         if (currUser?.role && ![UserRole.Teacher, UserRole.School, UserRole.Admin].includes(currUser?.role)) throw new ApiError(ApiErrors.InsufficientPermissions);
         const { pageNumber = 1, pageSize = 20, query } = options;
         const skip = (pageNumber - 1) * pageSize;

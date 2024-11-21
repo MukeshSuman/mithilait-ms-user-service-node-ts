@@ -14,6 +14,7 @@ export interface IExam extends Document {
     schoolId?: mongoose.Types.ObjectId;
     createdById?: mongoose.Types.ObjectId;
     updatedById?: mongoose.Types.ObjectId;
+    maxTakenCount?: number;
 }
 //'Speaking', 'Reading', 'Writing'
 const examSchema = new Schema<IExam>({
@@ -45,7 +46,8 @@ const examSchema = new Schema<IExam>({
     isDeleted: { type: Boolean, default: false },
     schoolId: { type: Schema.Types.ObjectId, ref: 'User' },
     createdById: { type: Schema.Types.ObjectId, ref: 'User' },
-    updatedById: { type: Schema.Types.ObjectId, ref: 'User' }
+    updatedById: { type: Schema.Types.ObjectId, ref: 'User' },
+    maxTakenCount: { type: Number, default: 2 }
 }, {
     timestamps: true,
     toJSON: {

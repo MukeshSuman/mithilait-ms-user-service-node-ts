@@ -1,12 +1,14 @@
 import { IUser, UserRole, User } from "../models/userModel";
 import { IExam, Exam } from "../models/examModel";
 import { ApiError } from "../utils/apiResponse";
-import { PaginationOptions, PaginationResult } from "../utils/pagination";
+import { PaginationQuery, PaginationResult } from "../utils/pagination";
 import { IExamFilter, IExamService, ISubmitExamData } from "../interfaces";
 import { ApiErrors } from "../constants";
 import mongoose, { Mongoose } from "mongoose";
 import { ReportService } from "./reportService";
 import { IReport, Report } from "../models/reportModel";
+import { convertSortObject } from "../utils/convertSortObject";
+import { isObjectEmpty } from "../utils/mix";
 
 export class ExamService implements IExamService {
   async create(data: Partial<IExam>, currUser?: IUser): Promise<IExam> {
@@ -55,71 +57,11 @@ export class ExamService implements IExamService {
     const exam = await Exam.findById(id);
     if (!exam || exam.isDeleted) throw new ApiError(ApiErrors.NotFound);
     const data: any = exam.toJSON();
-    // let students:any = []
-    // if(data.schoolId){
-    //     const queryObj: any = { schoolId: new mongoose.Types.ObjectId(exam.schoolId) };
-    //     const result = await User.find(queryObj);
-    //     if(result.length){
-    //         students = result
-    //     }
-    // }
-    // data.students = students
     return data;
   }
 
-  // async getByIdWithOtherDetails(
-  //   id: string,
-  //   filter: IExamFilter,
-  //   currUser?: IUser
-  // ): Promise<any> {
-  //   const exam = await Exam.findById(id);
-  //   if (!exam || exam.isDeleted) throw new ApiError(ApiErrors.NotFound);
-  //   const data: any = exam.toJSON();
-  //   let students: IUser[] = [];
-  //   let reports: IReport[] = [];
-  //   let studentReportMapper: any[] = [];
-  //   const studentMapper: Map<string, IUser> = new Map();
-  //   if ((filter.students || filter.mapStudentsAndReports) && data.schoolId) {
-  //     const queryObj: any = {
-  //       schoolId: new mongoose.Types.ObjectId(exam.schoolId),
-  //     };
-  //     const result = await User.find(queryObj);
-  //     if (result.length) {
-  //       students = result;
-  //       result.map((student) => {
-  //         studentMapper.set(student.id, student);
-  //       });
-  //     }
-  //   }
-
-  //   if (filter.reports || filter.mapStudentsAndReports) {
-  //     const queryObj: any = { examId: new mongoose.Types.ObjectId(id) };
-  //     const result = await Report.find(queryObj);
-  //     if (result.length) {
-  //       reports = result;
-  //     }
-  //   }
-
-  //   if (filter.mapStudentsAndReports) {
-  //     reports.map((report) => {
-  //       const reportJson = report.toJSON();
-  //       const stu = studentMapper.get(reportJson.studentId);
-  //       if (stu) {
-  //         studentReportMapper.push({
-  //           ...stu,
-  //           ...reportJson,
-  //           reportId: reportJson.id,
-  //         });
-  //       }
-  //     });
-  //     data.studentWithReport = studentReportMapper;
-  //   }
-
-  //   data.students = students;
-  //   return data;
-  // }
   async getAll(
-    options: PaginationOptions,
+    options: PaginationQuery,
     type: string,
     currUser?: IUser
   ): Promise<PaginationResult<IExam>> {
@@ -156,8 +98,6 @@ export class ExamService implements IExamService {
       ];
     }
 
-    console.log(queryObj);
-
     const [exams, total] = await Promise.all([
       Exam.find(queryObj).skip(skip).limit(pageSize),
       Exam.countDocuments(queryObj),
@@ -186,22 +126,40 @@ export class ExamService implements IExamService {
       remarks: data.remarks,
       result: data.result,
       score: data.score,
-      apiReponse: data.apiReponse,
+      apiResponse: data.apiResponse,
     };
     if (data.fileId) {
       reportData.fileId = new mongoose.Types.ObjectId(data.fileId);
     }
-    const reportResult = await reportService.create(reportData, currUser);
-    return reportResult;
+    const checkReportExists = await reportService.get({
+      studentId: reportData.studentId,
+      examId: reportData.examId,
+    });
+    if (checkReportExists.length) {
+      const oldData:any = checkReportExists[0];
+      const oldInfo = oldData.oldInfo || [];
+      const takenCount = oldData.takenCount ? oldData.takenCount + 1 : 1;
+      oldInfo.push({
+        fileId: oldData.fileId,
+        apiResponse: oldData.apiResponse || oldData.apiReponse || {},
+        result: oldData.result,
+      })
+      const newData = { ...oldData, ...reportData, oldInfo: oldInfo, takenCount: takenCount };
+      return await reportService.update(checkReportExists[0].id, newData);
+    } else {
+      const reportResult = await reportService.create(reportData, currUser);
+      return reportResult;
+    }
+
   }
   async getExamWithStudentsReportAndPagination(
-    options: PaginationOptions,
-    filter: Record<string, any>,
+    options: PaginationQuery,
+    filters: Record<string, any>,
     currUser?: IUser
   ): Promise<any> {
     return await this._getExamWithStudentsReportAndPagination(
       options,
-      filter,
+      filters,
       currUser
     );
   }
@@ -221,12 +179,68 @@ export class ExamService implements IExamService {
   }
 
   private async _getExamWithStudentsReportAndPagination(
-    options: PaginationOptions,
+    options: PaginationQuery,
     filter: IExamFilter,
     currUser?: IUser
   ): Promise<PaginationResult<IExam>> {
     const { pageNumber = 1, pageSize = 1 } = options;
     const skip = (pageNumber - 1) * pageSize;
+
+    let sort = convertSortObject(options.sort || {});
+
+    if(options.sortField && options.sortOrder){
+      sort = {
+        ...sort,
+        ...convertSortObject({[options.sortField]: options.sortOrder})
+      }
+    }
+
+    if (isObjectEmpty(sort)){
+      sort = convertSortObject({createdAt: 'asc'})
+    }
+
+    const searchMatchArr:Array<any> = [];
+    let searchMatchObj = {}
+    let dateMatch:any = {}
+
+    if(!isObjectEmpty(options.filters || {})){
+      Object.entries(options.filters || {}).forEach(([key, value]) => {
+        if(value){
+          if(key.startsWith("startDate") || key.startsWith("fromDate")){
+            const tempValue = new Date(value as string)
+            if(dateMatch.createdAt){
+              dateMatch.createdAt = {
+                ...dateMatch.createdAt,
+                $gte: tempValue
+              }
+            } else {
+              dateMatch.createdAt = {
+                $gte: tempValue
+              }
+            }
+          } else if(key.startsWith("endDate") || key.startsWith("toDate")){
+            const tempValue = new Date(value as string)
+            if(dateMatch.createdAt){
+              dateMatch.createdAt = {
+                ...dateMatch.createdAt,
+                $lte: tempValue
+              }
+            } else {
+              dateMatch.createdAt = {
+                $lte: tempValue
+              }
+            }
+          } else {
+             searchMatchArr.push({ [key]: { $regex: value, $options: 'i' } })
+          }
+        }
+      });
+      if(searchMatchArr.length){
+        searchMatchObj = {
+          $or: searchMatchArr
+        }
+      }
+    }
 
     const examQuery: Partial<{
       title: string;
@@ -246,13 +260,20 @@ export class ExamService implements IExamService {
       isActive: true, // Ensure the exam is active
     };
 
+    const userQuery: Partial<{
+      isDeleted?: boolean;
+      schoolId?: mongoose.Types.ObjectId;
+    }> = {
+      isDeleted: false
+    }
+
     let schoolId = null;
 
     if (filter.id) {
       examQuery._id = new mongoose.Types.ObjectId(filter.id);
     }
 
-    if(filter.hasOwnProperty("isPractice")) {
+    if (filter.hasOwnProperty("isPractice")) {
       examQuery.isPractice = filter.isPractice;
     }
 
@@ -262,60 +283,66 @@ export class ExamService implements IExamService {
         currUser.role === UserRole.Teacher
       ) {
         schoolId = new mongoose.Types.ObjectId(currUser.schoolId);
-        examQuery.schoolId = schoolId;
-        // examQuery.section = currUser.section;
       } else if (currUser.role === UserRole.School) {
         schoolId = new mongoose.Types.ObjectId(currUser.id);
-        examQuery.schoolId = schoolId;
-        console.log("This is school ->", schoolId, currUser.lastName);
       }
     }
 
+    if(schoolId){
+      examQuery.schoolId = schoolId;
+      userQuery.schoolId = schoolId;
+    }
+
+    const finalQuery = {
+      ...examQuery,
+      ...searchMatchObj,
+      ...dateMatch
+    }
+
+    console.log("finalQuery", finalQuery);
+
     // Step 1: Get the total number of exams (totalItems)
-    const totalItems = await Exam.countDocuments(examQuery).exec();
+    const totalItems = await Exam.countDocuments(finalQuery).exec();
 
     // Calculate the total number of pages (totalPages)
     const totalPages = Math.ceil(totalItems / pageSize);
 
-    console.log("examQuery ====>", examQuery)
-    console.log("page =====>", skip, pageSize)
+    console.log("examQuery ====>", examQuery);
+    console.log("page =====>", skip, pageSize);
 
     // Aggregation pipeline
     const pipeline = [
       {
         // Step 2: Match all active exams
-        $match: examQuery,
+        $match: finalQuery,
+      },
+      {
+        $addFields: {
+          filterSection: { $ifNull: ['$section', null] } // Set filterSection to section or null if section is not defined
+        }
       },
       {
         // Step 3: Lookup students based on class, and if section is present, match by section
         $lookup: {
           from: "users", // The name of the User collection
-          let: { classVar: "$class", sectionVar: "$section", examId: "$_id" }, // Use class, section, and examId from the Exam
+          //let: { classVar: "$class", sectionVar: "$section", examId: "$_id" }, // Use class, section, and examId from the Exam
+          let: { classVar: '$class', filterSection: '$filterSection', examId: '$_id' },
           pipeline: [
             {
               $match: {
+                ...userQuery,
                 $expr: {
                   $and: [
                     // { $eq: ['$schoolId', schoolId] },
                     { $eq: ["$class", "$$classVar"] }, // Match students based on class from Exam
                     {
-                      // Conditionally match section only if it exists in the Exam
+                      // Match all sections if filterSection is null; otherwise, match by specific section
                       $cond: {
-                        if: { $ne: ["$$sectionVar", ''] }, // Check if sectionVar is not null
-                        then: { $eq: ["$section", "$$sectionVar"] }, // Match specific section if present
-                        else: { }, // Include all sections if `section` in Exam is null
-                      },
+                        if: { $eq: ['$$filterSection', null] },
+                        then: true, // Include all sections
+                        else: { $eq: ['$section', '$$filterSection'] } // Filter by section if specified
+                      }
                     },
-                    // {
-                    //     // Conditionally match section, only if `section` exists in the Exam
-                    //     $or: [
-                    //         { $eq: ['$section', '$$sectionVar'] }, // Match section if provided
-                    //         // { $eq: ['$$sectionVar', null] },       // If section is null, match all students in the class
-                    //         // { $eq: ['$section', ''] },              // Match empty string as well for non-sectioned students
-                    //         // { $eq: ['$$sectionVar', null] },       // If section is null, include all students in the class
-                    //         { $eq: ['$$sectionVar', undefined] }   // Handles cases where sectionVar is undefined
-                    //     ],
-                    // },
                     { $eq: ["$isDeleted", false] }, // Ensure the user is not deleted
                   ],
                 },
@@ -422,6 +449,9 @@ export class ExamService implements IExamService {
         },
       },
       {
+        $sort: sort,
+      },
+      {
         // Step 11: Rename _id to id for the exam
         $addFields: {
           id: "$_id",
@@ -439,7 +469,7 @@ export class ExamService implements IExamService {
       },
       {
         $limit: pageSize,
-      }
+      },
     ];
 
     // Execute the aggregation query

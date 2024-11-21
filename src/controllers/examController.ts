@@ -1,8 +1,8 @@
 import { IExam } from "../models/examModel";
 import { IUser } from "../models/userModel";
 import { ApiResponse } from '../utils/apiResponse';
-import { PaginationOptions, PaginationResult } from '../utils/pagination';
-import { Body, Controller, Get, Path, Post, Put, Delete, Query, Route, Security, Tags, Request, Hidden, FormField, UploadedFile } from 'tsoa';
+import { PaginationQuery, PaginationResult, handlePagination } from '../utils/pagination';
+import { Body, Controller, Get, Path, Post, Put, Delete, Query, Route, Security, Tags, Request, Hidden, FormField, UploadedFile, Queries } from 'tsoa';
 import { ExamService, ReportService, FileService } from "../services";
 // import mongoose from "mongoose";
 
@@ -16,6 +16,17 @@ interface ExamCreationParams {
     section?: string;
     isPractice?: boolean;
 }
+
+
+interface QueryParams {
+    pageNumber: number;
+    pageSize: number;
+    query?: string;
+    sortKey?: string;
+    sortOrder?: string;
+    filterKey?: string;
+    filterValue?: string;
+  }
 
 @Route('api/exams')
 @Tags('Exam')
@@ -107,9 +118,22 @@ export class ExamController extends Controller {
         @Query() isPractice?: boolean,
         @Query() @Hidden() currUser?: IUser
     ): Promise<ApiResponse<PaginationResult<IExam>>> {
-        const options: PaginationOptions = { pageNumber, pageSize, query };
+        const options: PaginationQuery = { pageNumber, pageSize, query };
         // const result = await this.examService.getAll(options, type || '', currUser);
         const result =  await this.examService.getExamWithStudentsReportAndPagination(options,{ type, isPractice: isPractice }, currUser)
+        return new ApiResponse(200, true, 'Exam retrieved successfully', result);
+    }
+
+    @Get('report/all')
+    @Security('jwt', ['admin', 'exam'])
+    public async getReport(
+        @Queries() queryParams: QueryParams,
+        @Query() @Hidden() currUser?: IUser
+    ): Promise<ApiResponse<PaginationResult<IExam>>> {
+        console.log('queryParams -------------> ', queryParams)
+        // const options: PaginationOptions = { pageNumber, pageSize, query };
+        // const result = await this.examService.getAll(options, type || '', currUser);
+        const result =  await this.examService.getExamWithStudentsReportAndPagination(handlePagination(queryParams) as PaginationQuery,{ type: "" }, currUser)
         return new ApiResponse(200, true, 'Exam retrieved successfully', result);
     }
 }

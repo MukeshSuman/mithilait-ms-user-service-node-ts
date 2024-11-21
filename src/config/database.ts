@@ -1,10 +1,11 @@
 import mongoose from 'mongoose';
 import { logger } from './logger';
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/user-microservice';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://microservice_user:mongodbpwd66@localhost:27017/user-microservice';
 
 export const connectDB = async (nextTry: number = 5000) => {
     try {
+        console.log('MONGODB_URI', MONGODB_URI);
         await mongoose.connect(MONGODB_URI);
 
         mongoose.connection.on('connected', () => {

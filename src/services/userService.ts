@@ -1,6 +1,6 @@
 import { User, IUser, UserRole } from '../models/userModel';
 import { ApiError } from '../utils/apiResponse';
-import { PaginationOptions, PaginationResult } from '../utils/pagination';
+import { PaginationQuery, PaginationResult } from '../utils/pagination';
 import { generateToken, verifyToken } from '../utils/jwtUtils';
 import { IUserService, IUserWithToken } from "../interfaces/IUserService";
 import { ApiErrors } from "../constants";
@@ -46,7 +46,7 @@ export class UserService implements IUserService {
         return user;
     }
 
-    async listUsers(options: PaginationOptions, role: UserRole, currUser?: IUser): Promise<PaginationResult<IUser>> {
+    async listUsers(options: PaginationQuery, role: UserRole, currUser?: IUser): Promise<PaginationResult<IUser>> {
         console.log("currUser==========================", currUser);
         console.log("role==========================", role);
         if (currUser?.role && ![UserRole.Teacher, UserRole.School, UserRole.Admin].includes(currUser?.role)) throw new ApiError(ApiErrors.InsufficientPermissions);

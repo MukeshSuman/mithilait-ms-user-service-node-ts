@@ -6,6 +6,7 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
     const start = Date.now();
 
     res.on('finish', () => {
+        console.log('---- START requestLogger -----')
         const duration = Date.now() - start;
         const { method, originalUrl } = req;
         const { statusCode } = res;
@@ -31,7 +32,7 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
             console.log(chalk.magenta('Body:'), req.body);
         }
 
-        console.log('---');  // Separator for readability
+        console.log('---- END requestLogger -----') // console.log('---');  // Separator for readability
     });
     logger.info(`${req.method} ${req.path}`);
     // logger.info('Headers:', req.headers);

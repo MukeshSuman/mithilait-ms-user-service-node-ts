@@ -1,7 +1,7 @@
 // import { Request } from 'express';
 import { UserService } from '../services/userService';
 import { ApiResponse } from '../utils/apiResponse';
-import { PaginationOptions, PaginationResult } from '../utils/pagination';
+import { PaginationQuery, PaginationResult } from '../utils/pagination';
 import { Body, Controller, Get, Path, Post, Put, Delete, Query, Route, Security, Tags, Request, Hidden } from 'tsoa';
 import { IUser, UserRole } from '../models/userModel';
 
@@ -93,7 +93,7 @@ export class UserController extends Controller {
         @Query() role?: UserRole,
         @Query() @Hidden() currUser?: IUser
     ): Promise<ApiResponse<PaginationResult<IUser>>> {
-        const options: PaginationOptions = { pageNumber, pageSize, query };
+        const options: PaginationQuery = { pageNumber, pageSize, query };
         const result = await this.userService.listUsers(options, role as any, currUser);
         return new ApiResponse(200, true, 'Users retrieved successfully', result);
     }
