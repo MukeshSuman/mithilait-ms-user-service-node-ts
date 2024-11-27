@@ -54,6 +54,9 @@ app.use(requestLogger);
 // Serve the uploads folder statically
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
+// Serve static downloads
+app.use("/downloads", express.static(path.join(__dirname, "../downloads")));
+
 
 // Connect to MongoDB
 connectDB();

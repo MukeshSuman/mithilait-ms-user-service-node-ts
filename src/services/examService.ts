@@ -9,6 +9,7 @@ import { ReportService } from "./reportService";
 import { IReport, Report } from "../models/reportModel";
 import { convertSortObject } from "../utils/convertSortObject";
 import { isObjectEmpty } from "../utils/mix";
+import { arrayToXLSX } from "../utils/createXLSX";
 
 export class ExamService implements IExamService {
   async create(data: Partial<IExam>, currUser?: IUser): Promise<IExam> {
@@ -136,7 +137,7 @@ export class ExamService implements IExamService {
       examId: reportData.examId,
     });
     if (checkReportExists.length) {
-      const oldData:any = checkReportExists[0];
+      const oldData: any = checkReportExists[0];
       const oldInfo = oldData.oldInfo || [];
       const takenCount = oldData.takenCount ? oldData.takenCount + 1 : 1;
       oldInfo.push({
@@ -183,32 +184,38 @@ export class ExamService implements IExamService {
     filter: IExamFilter,
     currUser?: IUser
   ): Promise<PaginationResult<IExam>> {
-    const { pageNumber = 1, pageSize = 1 } = options;
-    const skip = (pageNumber - 1) * pageSize;
+    let { pageNumber = 1, pageSize = 1 } = options;
+    let skip = (pageNumber - 1) * pageSize;
 
     let sort = convertSortObject(options.sort || {});
 
-    if(options.sortField && options.sortOrder){
+    if(options.downloadOption){
+      skip = 0,
+      pageNumber = 1;
+      pageSize = Number(options.downloadOption.totalItems) || 100000000;
+    }
+
+    if (options.sortField && options.sortOrder) {
       sort = {
         ...sort,
-        ...convertSortObject({[options.sortField]: options.sortOrder})
+        ...convertSortObject({ [options.sortField]: options.sortOrder })
       }
     }
 
-    if (isObjectEmpty(sort)){
-      sort = convertSortObject({createdAt: 'asc'})
+    if (isObjectEmpty(sort)) {
+      sort = convertSortObject({ createdAt: 'asc' })
     }
 
-    const searchMatchArr:Array<any> = [];
+    const searchMatchArr: Array<any> = [];
     let searchMatchObj = {}
-    let dateMatch:any = {}
+    let dateMatch: any = {}
 
-    if(!isObjectEmpty(options.filters || {})){
+    if (!isObjectEmpty(options.filters || {})) {
       Object.entries(options.filters || {}).forEach(([key, value]) => {
-        if(value){
-          if(key.startsWith("startDate") || key.startsWith("fromDate")){
+        if (value) {
+          if (key.startsWith("startDate") || key.startsWith("fromDate")) {
             const tempValue = new Date(value as string)
-            if(dateMatch.createdAt){
+            if (dateMatch.createdAt) {
               dateMatch.createdAt = {
                 ...dateMatch.createdAt,
                 $gte: tempValue
@@ -218,9 +225,9 @@ export class ExamService implements IExamService {
                 $gte: tempValue
               }
             }
-          } else if(key.startsWith("endDate") || key.startsWith("toDate")){
+          } else if (key.startsWith("endDate") || key.startsWith("toDate")) {
             const tempValue = new Date(value as string)
-            if(dateMatch.createdAt){
+            if (dateMatch.createdAt) {
               dateMatch.createdAt = {
                 ...dateMatch.createdAt,
                 $lte: tempValue
@@ -231,11 +238,11 @@ export class ExamService implements IExamService {
               }
             }
           } else {
-             searchMatchArr.push({ [key]: { $regex: value, $options: 'i' } })
+            searchMatchArr.push({ [key]: { $regex: value, $options: 'i' } })
           }
         }
       });
-      if(searchMatchArr.length){
+      if (searchMatchArr.length) {
         searchMatchObj = {
           $or: searchMatchArr
         }
@@ -288,7 +295,7 @@ export class ExamService implements IExamService {
       }
     }
 
-    if(schoolId){
+    if (schoolId) {
       examQuery.schoolId = schoolId;
       userQuery.schoolId = schoolId;
     }

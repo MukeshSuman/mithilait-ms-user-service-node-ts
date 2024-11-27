@@ -141,3 +141,6 @@ uploads/*
 
 # swagger routes file
 src/routes/routes.*
+
+# downloads
+downloads/*

@@ -100,4 +100,18 @@ router.get('/report/all', authMiddleware([UserRole.Admin, UserRole.School]), asy
     }
 });
 
+router.get('/report/download', authMiddleware([UserRole.Admin, UserRole.School]), async (req, res, next) => {
+    try {
+
+        console.log('/exam/download', req.query)
+
+        const result = await examController.downloadReport(req.query as any, req.user as IUser);
+        res.json(result);
+    } catch (error: ApiError | any) {
+        errorHandler(error, req, res, next);
+    }
+});
+
+
+
 export { router as examRouter };

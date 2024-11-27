@@ -4,6 +4,8 @@ import { ApiResponse } from '../utils/apiResponse';
 import { PaginationQuery, PaginationResult, handlePagination } from '../utils/pagination';
 import { Body, Controller, Get, Path, Post, Put, Delete, Query, Route, Security, Tags, Request, Hidden, FormField, UploadedFile, Queries } from 'tsoa';
 import { ExamService, ReportService, FileService } from "../services";
+import { flattenObject, reorderObjectKeys, transformObject } from "../utils/jsonTransform";
+import { arrayToXLSX } from "../utils/createXLSX";
 // import mongoose from "mongoose";
 
 interface ExamCreationParams {
@@ -109,7 +111,7 @@ export class ExamController extends Controller {
     }
 
     @Get()
-    @Security('jwt', ['admin', 'exam'])
+    @Security('jwt', ['admin', 'school', 'teacher', 'student'])
     public async getAll(
         @Query() pageNumber: number = 1,
         @Query() pageSize: number = 20,
@@ -125,7 +127,7 @@ export class ExamController extends Controller {
     }
 
     @Get('report/all')
-    @Security('jwt', ['admin', 'exam'])
+    @Security('jwt', ['admin', 'school', 'teacher', 'student'])
     public async getReport(
         @Queries() queryParams: QueryParams,
         @Query() @Hidden() currUser?: IUser
@@ -136,4 +138,45 @@ export class ExamController extends Controller {
         const result =  await this.examService.getExamWithStudentsReportAndPagination(handlePagination(queryParams) as PaginationQuery,{ type: "" }, currUser)
         return new ApiResponse(200, true, 'Exam retrieved successfully', result);
     }
+    @Get('report/download')
+    @Security('jwt', ['admin', 'school', 'teacher', 'student'])
+    public async downloadReport(
+        @Queries() queryParams: QueryParams,
+        @Query() @Hidden() currUser?: IUser
+    ): Promise<ApiResponse<any>> {
+        const result =  await this.examService.getExamWithStudentsReportAndPagination(handlePagination(queryParams) as PaginationQuery,{ type: "" }, currUser);
+
+        const data = this._prepareData(result.items || []);
+        const filePath = await arrayToXLSX(data, {})
+
+        return new ApiResponse(200, true, 'Exam retrieved successfully', {
+            filePath: filePath
+        });
+    }
+
+     _prepareData = (data: Array<any>) => {
+        const list: Array<any> = [];
+        data?.map((exam: any) => {
+          exam.students?.map((student: any) => {
+            const ignoreKeys = ['students', 'apiReponse', 'apiResponse', '__v'];
+            const stu = flattenObject({ ...student, exam: exam }, ignoreKeys)
+            const overrideObject = {
+              report_result_accuracyScore: '-',
+              report_result_completenessScore: '-',
+              report_result_fluencyScore: '-',
+              report_result_pronunciationScore: '-',
+              report_result_prosodyScore: '-',
+              exam_section: ' '
+            }
+            const newObject = transformObject({ ...overrideObject, ...stu }, {
+              selectKeys: [],
+              renames: { exam_title: "Title", exam_type: "Type", exam_topic: "Topic", report_result_accuracyScore: "AccuracyScore", report_result_completenessScore: "CompletenessScore", report_result_fluencyScore: "FluencyScore", report_result_pronunciationScore: "PronunciationScore", report_result_prosodyScore: "ProsodyScore" },
+              newKeys: { Name: 'firstName,lastName', StudentClass: 'class,section', ExamFor: 'exam_class,exam_section' },
+            });
+            const reorderKeys = reorderObjectKeys(newObject, ['Name', 'StudentClass', 'Title', 'Type', 'Topic', 'ExamFor', 'AccuracyScore', 'CompletenessScore', 'FluencyScore', 'PronunciationScore', 'ProsodyScore']);
+            list.push(reorderKeys)
+          })
+        })
+        return list;
+      }
 }
