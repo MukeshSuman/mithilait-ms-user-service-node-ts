@@ -63,7 +63,7 @@ export class ExamService implements IExamService {
 
   async getAll(
     options: PaginationQuery,
-    type: string,
+    // type: string,
     currUser?: IUser
   ): Promise<PaginationResult<IExam>> {
     if (
@@ -86,11 +86,11 @@ export class ExamService implements IExamService {
       queryObj.schoolId = new mongoose.Types.ObjectId(currUser?.id);
     }
 
-    if (type) {
-      queryObj.type = {
-        $in: [type],
-      };
-    }
+    // if (type) {
+    //   queryObj.type = {
+    //     $in: [type],
+    //   };
+    // }
 
     if (query) {
       queryObj.$or = [
@@ -155,12 +155,12 @@ export class ExamService implements IExamService {
   }
   async getExamWithStudentsReportAndPagination(
     options: PaginationQuery,
-    filters: Record<string, any>,
+    // filters: Record<string, any>,
     currUser?: IUser
   ): Promise<any> {
     return await this._getExamWithStudentsReportAndPagination(
       options,
-      filters,
+      // filters,
       currUser
     );
   }
@@ -170,8 +170,8 @@ export class ExamService implements IExamService {
     currUser?: IUser
   ): Promise<any> {
     const results = await this._getExamWithStudentsReportAndPagination(
-      { pageNumber: 1, pageSize: 1 },
-      { id: examId },
+      { pageNumber: 1, pageSize: 1, id: examId },
+      // { id: examId },
       currUser
     );
     return {
@@ -181,7 +181,7 @@ export class ExamService implements IExamService {
 
   private async _getExamWithStudentsReportAndPagination(
     options: PaginationQuery,
-    filter: IExamFilter,
+    // filter: IExamFilter,
     currUser?: IUser
   ): Promise<PaginationResult<IExam>> {
     let { pageNumber = 1, pageSize = 1 } = options;
@@ -189,10 +189,10 @@ export class ExamService implements IExamService {
 
     let sort = convertSortObject(options.sort || {});
 
-    if(options.downloadOption){
+    if(options.isDownload){
       skip = 0,
       pageNumber = 1;
-      pageSize = Number(options.downloadOption.totalItems) || 100000000;
+      pageSize = Number(options.downloadTotalItems) || 100000000;
     }
 
     if (options.sortField && options.sortOrder) {
@@ -276,12 +276,12 @@ export class ExamService implements IExamService {
 
     let schoolId = null;
 
-    if (filter.id) {
-      examQuery._id = new mongoose.Types.ObjectId(filter.id);
+    if (options?.id) {
+      examQuery._id = new mongoose.Types.ObjectId(options.id);
     }
 
-    if (filter.hasOwnProperty("isPractice")) {
-      examQuery.isPractice = filter.isPractice;
+    if (options.hasOwnProperty("isPractice")) {
+      examQuery.isPractice = options.isPractice;
     }
 
     if (currUser) {

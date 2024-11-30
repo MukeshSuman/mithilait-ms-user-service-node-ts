@@ -41,5 +41,5 @@ export interface IExamService extends IBaseService<IExam> {
     submitExam(id: string, studentId: string, data: ISubmitExamData, currUser?: IUser): Promise<any>;
     // getByIdWithOtherDetails(id: string, filter: IExamFilter, currUser?: IUser): Promise<any>;
     getSingleExamWithStudentsReportAndPagination(id: string, currUser?: IUser): Promise<any>;
-    getExamWithStudentsReportAndPagination(options: PaginationQuery, filter: IExamFilter, currUser?: IUser): Promise<any>
+    getExamWithStudentsReportAndPagination(options: PaginationQuery, currUser?: IUser): Promise<any>
 }

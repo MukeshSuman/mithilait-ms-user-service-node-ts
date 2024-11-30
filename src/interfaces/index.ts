@@ -2,7 +2,8 @@ export * from './IApiErrors';
 export * from './IExamService';
 export * from './IUserService';
 export * from './IFileService';
-export * from './IReportService'
+export * from './IReportService';
+export * from './ITopicService';
 
 export interface IExamReportFilter {
     title: string;

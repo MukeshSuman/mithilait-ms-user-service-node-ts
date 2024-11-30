@@ -22,7 +22,7 @@ export const ApiErrors = {
     UnAuthorized: {
         code: 'UNAUTHORIZED',
         message: 'Auth Token either invalid or expired.',
-        httpStatusCode: 401,
+        httpStatusCode: 403,
     },
     BadRequest: {
         code: 'BAD_REQUEST',
@@ -62,6 +62,6 @@ export const ApiErrors = {
     InsufficientPermissions: {
         code: 'INSUFFICIENT_PERMISSIONS',
         message: 'Insufficient permissions.',
-        httpStatusCode: 403,
+        httpStatusCode: 401,
     }
 };

@@ -2,10 +2,25 @@
 
 export type SortOrder = "asc" | "desc";
 
-export interface CommonFields {}
+export interface CommonFields { }
 
 export type FilterFields = Partial<Record<keyof CommonFields, string>>;
 export type SortFields = Partial<Record<keyof CommonFields, SortOrder>>;
+
+// Only for swagger docs
+export interface PaginationQueryForSwagger {
+    pageNumber: number;
+    pageSize: number;
+    query?: string;
+    search?: string;
+    sortField?: string;
+    sortOrder?: string;
+    filterField?: string;
+    filterValue?: string;
+    isDownload?: boolean;
+    downloadType?: string; // XLSX | CSV | PDF
+    downloadTotalItems?: number | string; // if list
+}
 
 
 export interface PaginationQuery<F = {}, S = {}> {
@@ -19,12 +34,16 @@ export interface PaginationQuery<F = {}, S = {}> {
     sort?: S;
     filterField?: string;
     filterValue?: string;
-    downloadOption?: {
-        downloadType: string; // XLSX | CSV | PDF
-        totalItems?: number | string; // if list
-    }
-  }
-  
+    isDownload?: boolean;
+    downloadType?: string; // XLSX | CSV | PDF
+    downloadTotalItems?: number | string; // if list
+    [x: string]: any;
+    // downloadOption?: {
+    //     downloadType: string; // XLSX | CSV | PDF
+    //     totalItems?: number | string; // if list
+    // }
+}
+
 
 
 export interface PaginationQuery1 {
@@ -47,13 +66,24 @@ export interface PaginationResult<T> {
     totalPages: number;
 }
 
-export const handlePagination = (pagination:any) => {
+export const handlePagination = (pagination: any, includeFields?: any): PaginationQuery => {
     let tempPagination = pagination;
-    if(pagination.pageNumber) {
+
+    tempPagination = {
+        ...includeFields,
+        ...tempPagination
+    }
+
+    if (pagination.pageNumber) {
         tempPagination['pageNumber'] = +pagination.pageNumber
     }
-    if(pagination.pageSize) {
+    if (pagination.pageSize) {
         tempPagination['pageSize'] = +pagination.pageSize
     }
-  return tempPagination
+
+    if(tempPagination.downloadTotalItems){
+        tempPagination['downloadTotalItems'] = +pagination.downloadTotalItems;
+    }
+
+    return tempPagination
 }

@@ -14,6 +14,7 @@ import { studentRouter } from "./routes/studentRoutes";
 import { examRouter } from "./routes/examRoutes";
 import { initCronJobs } from './job';
 import path from "path";
+import { topicRouter } from './routes/topicRoutes';
 
 
 config({
@@ -79,6 +80,8 @@ app.use('/api/speech', speechRouter);
 app.use('/api/schools', schoolRouter);
 app.use('/api/students', studentRouter);
 app.use('/api/exams', examRouter);
+app.use('/api/topic', topicRouter);
+
 
 // Error handling middleware
 app.use(errorHandler);

@@ -58,7 +58,7 @@ export class ReportService implements IReportService {
         return result;
     }
 
-    async getAll(options: PaginationQuery, type: string, currUser?: IUser): Promise<PaginationResult<IReport>> {
+    async getAll(options: PaginationQuery, currUser?: IUser): Promise<PaginationResult<IReport>> {
         if (currUser?.role && ![UserRole.Teacher, UserRole.School, UserRole.Admin].includes(currUser?.role)) throw new ApiError(ApiErrors.InsufficientPermissions);
         const { pageNumber = 1, pageSize = 20, query } = options;
         const skip = (pageNumber - 1) * pageSize;
@@ -73,11 +73,11 @@ export class ReportService implements IReportService {
             queryObj.schoolId = new mongoose.Types.ObjectId(currUser?.id);
         }
 
-        if (type) {
-            queryObj.type = {
-                $in: [type]
-            };
-        }
+        // if (type) {
+        //     queryObj.type = {
+        //         $in: [type]
+        //     };
+        // }
 
         if (query) {
             queryObj.$or = [

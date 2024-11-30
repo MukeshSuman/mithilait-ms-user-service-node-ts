@@ -120,9 +120,9 @@ export class ExamController extends Controller {
         @Query() isPractice?: boolean,
         @Query() @Hidden() currUser?: IUser
     ): Promise<ApiResponse<PaginationResult<IExam>>> {
-        const options: PaginationQuery = { pageNumber, pageSize, query };
+        const options: PaginationQuery = { pageNumber, pageSize, query, type, isPractice: isPractice };
         // const result = await this.examService.getAll(options, type || '', currUser);
-        const result =  await this.examService.getExamWithStudentsReportAndPagination(options,{ type, isPractice: isPractice }, currUser)
+        const result =  await this.examService.getExamWithStudentsReportAndPagination(options, currUser)
         return new ApiResponse(200, true, 'Exam retrieved successfully', result);
     }
 
@@ -135,7 +135,7 @@ export class ExamController extends Controller {
         console.log('queryParams -------------> ', queryParams)
         // const options: PaginationOptions = { pageNumber, pageSize, query };
         // const result = await this.examService.getAll(options, type || '', currUser);
-        const result =  await this.examService.getExamWithStudentsReportAndPagination(handlePagination(queryParams) as PaginationQuery,{ type: "" }, currUser)
+        const result =  await this.examService.getExamWithStudentsReportAndPagination(handlePagination(queryParams) as PaginationQuery, currUser)
         return new ApiResponse(200, true, 'Exam retrieved successfully', result);
     }
     @Get('report/download')
@@ -144,7 +144,7 @@ export class ExamController extends Controller {
         @Queries() queryParams: QueryParams,
         @Query() @Hidden() currUser?: IUser
     ): Promise<ApiResponse<any>> {
-        const result =  await this.examService.getExamWithStudentsReportAndPagination(handlePagination(queryParams) as PaginationQuery,{ type: "" }, currUser);
+        const result =  await this.examService.getExamWithStudentsReportAndPagination(handlePagination(queryParams, {isDownload: true, type: ""}) as PaginationQuery, currUser);
 
         const data = this._prepareData(result.items || []);
         const filePath = await arrayToXLSX(data, {})
