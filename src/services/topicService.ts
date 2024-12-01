@@ -148,4 +148,27 @@ export class TopicService implements ITopicService {
             totalPages: Math.ceil(total / pageSize),
         };
     }
+
+    async getRandom(data: Record<string, any>, currUser?: IUser): Promise<ITopic> {
+        const queryObj: any = { isDeleted: false };
+
+        if (currUser?.role === UserRole.Teacher) {
+            queryObj.schoolId = new mongoose.Types.ObjectId(currUser?.schoolId);
+        }
+
+        if (currUser?.role === UserRole.School) {
+            queryObj.schoolId = new mongoose.Types.ObjectId(currUser?.id);
+        }
+
+        if(data.difficulty){
+            queryObj.difficulty = data.difficulty
+        }
+
+        const finalQuery = {
+            ...queryObj,
+          }
+
+        const randomTopic = await Topic.aggregate([{$match: finalQuery}, { $sample: { size: 1 } }]);
+        return randomTopic[0];
+      };
 }

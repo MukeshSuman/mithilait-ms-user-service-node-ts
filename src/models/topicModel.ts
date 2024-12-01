@@ -4,6 +4,7 @@ export interface ITopic extends Document {
     title: string;
     description?: string;
     type: 'Speaking' | 'Reading' | 'Writing' | 'Listening' | 'Typing';
+    difficulty?: 'Easy' | 'Medium' | 'Hard'
     // topic: string;
     duration?: number;
     class?: number;
@@ -18,7 +19,8 @@ export interface ITopic extends Document {
 const topicSchema = new Schema<ITopic>({
     title: { type: String, required: true },
     description: { type: String, required: true },
-    type: { type: String, required: true, enum: ['Speaking', 'Reading', 'Writing', 'Listening', 'Typing'], default:"Reading" },
+    type: { type: String, required: true, enum: ['Speaking', 'Reading', 'Writing', 'Listening', 'Typing'], default: "Reading" },
+    difficulty: { type: String, required: true, enum: ['Easy', 'Medium', 'Hard'], default: "Medium" },
     // topic: { type: String, required: true },
     duration: { type: Number, required: false },
     class: {

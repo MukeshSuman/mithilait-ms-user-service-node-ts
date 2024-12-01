@@ -1,7 +1,7 @@
 import { ITopic } from "../models/topicModel";
 import { IUser } from "../models/userModel";
 import { ApiResponse } from '../utils/apiResponse';
-import { PaginationQueryForSwagger, PaginationQuery,  PaginationResult, handlePagination } from '../utils/pagination';
+import { PaginationQueryForSwagger, PaginationQuery, PaginationResult, handlePagination } from '../utils/pagination';
 import { Body, Controller, Get, Path, Post, Put, Delete, Query, Route, Security, Tags, Request, Hidden, FormField, UploadedFile, Queries } from 'tsoa';
 import { TopicService } from "../services";
 
@@ -9,6 +9,7 @@ interface TopicCreationParams {
     title: string;
     description: string;
     type: "Reading" | "Speaking" | "Writing" | "Listening" | "Typing";
+    difficulty?: 'Easy' | 'Medium' | 'Hard'
     // topic: string;
     duration: number;
     class?: number;
@@ -77,7 +78,21 @@ export class TopicController extends Controller {
         @Queries() queryParams: PaginationQueryForSwagger,
         @Query() @Hidden() currUser?: IUser
     ): Promise<ApiResponse<PaginationResult<ITopic>>> {
-        const result =  await this.topicService.getAll(handlePagination(queryParams, { type: "" }) as PaginationQuery, currUser)
+        const result = await this.topicService.getAll(handlePagination(queryParams, { type: "" }) as PaginationQuery, currUser)
+        return new ApiResponse(200, true, 'Topic retrieved successfully', result);
+    }
+
+    @Get('/random')
+    @Security('jwt', ['admin', 'school', 'teacher', 'student'])
+    public async getRandom(
+        @Queries() @Hidden() queryParams: {
+            search?: string;
+            difficulty?: 'Easy' | 'Medium' | 'Hard'; 
+        },
+        // @Queries() @Hidden() queryParams: PaginationQueryForSwagger,
+        @Query() @Hidden() currUser?: IUser
+    ): Promise<ApiResponse<PaginationResult<ITopic>>> {
+        const result = await this.topicService.getRandom(queryParams, currUser)
         return new ApiResponse(200, true, 'Topic retrieved successfully', result);
     }
 }

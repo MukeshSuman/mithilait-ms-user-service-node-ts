@@ -18,6 +18,16 @@ router.post('/', authMiddleware([UserRole.Admin, UserRole.School]), validate(cre
         errorHandler(error, req, res, next);
     }
 });
+
+router.get('/random', authMiddleware([UserRole.Admin, UserRole.School, UserRole.Teacher]), async (req, res, next) => {
+    try {
+        const result = await topicController.getRandom(req.query as any, req.user as IUser);
+        res.json(result);
+    } catch (error: ApiError | any) {
+        errorHandler(error, req, res, next);
+    }
+});
+
 router.put('/:id', authMiddleware([UserRole.Admin, UserRole.School]), validate(updateTopicSchema), async (req, res, next) => {
     try {
         delete req.body.password;
