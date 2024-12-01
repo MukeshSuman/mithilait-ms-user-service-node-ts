@@ -53,7 +53,7 @@ export class FileService implements IFileService {
         return data;
     }
 
-    async getAll(options: PaginationQuery, type: string, currUser?: IUser): Promise<PaginationResult<IFile>> {
+    async getAll(options: PaginationQuery, currUser?: IUser): Promise<PaginationResult<IFile>> {
         if (currUser?.role && ![UserRole.Teacher, UserRole.School, UserRole.Admin].includes(currUser?.role)) throw new ApiError(ApiErrors.InsufficientPermissions);
         const { pageNumber = 1, pageSize = 20, query } = options;
         const skip = (pageNumber - 1) * pageSize;
@@ -68,11 +68,11 @@ export class FileService implements IFileService {
             queryObj.schoolId = new mongoose.Types.ObjectId(currUser?.id);
         }
 
-        if (type) {
-            queryObj.type = {
-                $in: [type]
-            };
-        }
+        // if (type) {
+        //     queryObj.type = {
+        //         $in: [type]
+        //     };
+        // }
 
         if (query) {
             queryObj.$or = [
