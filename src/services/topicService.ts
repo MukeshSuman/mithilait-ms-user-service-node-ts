@@ -53,7 +53,7 @@ export class TopicService implements ITopicService {
 
     async getAll(options: PaginationQuery, currUser?: IUser): Promise<PaginationResult<ITopic>> {
         if (currUser?.role && ![UserRole.Teacher, UserRole.School, UserRole.Admin].includes(currUser?.role)) throw new ApiError(ApiErrors.InsufficientPermissions);
-        const { pageNumber = 1, pageSize = 20, query } = options;
+        const { pageNumber = 1, pageSize = 20, query, search } = options;
         const skip = (pageNumber - 1) * pageSize;
 
         const queryObj: any = { isDeleted: false };
@@ -66,10 +66,10 @@ export class TopicService implements ITopicService {
             queryObj.schoolId = new mongoose.Types.ObjectId(currUser?.id);
         }
 
-        if (query) {
+        if (query || search) {
             queryObj.$or = [
-                { title: { $regex: query, $options: 'i' } },
-                { description: { $regex: query, $options: 'i' } }
+                { title: { $regex: query || search, $options: 'i' } },
+                { description: { $regex: query || search, $options: 'i' } }
             ];
         }
 
@@ -83,12 +83,14 @@ export class TopicService implements ITopicService {
         }
 
         if (isObjectEmpty(sort)) {
-            sort = convertSortObject({ createdAt: 'asc' })
+            sort = convertSortObject({ createdAt: 'desc' })
         }
 
         const searchMatchArr: Array<any> = [];
         let searchMatchObj = {}
         let dateMatch: any = {}
+        let filterObj:any = {} 
+
 
         if (!isObjectEmpty(options.filters || {})) {
             Object.entries(options.filters || {}).forEach(([key, value]) => {
@@ -118,6 +120,7 @@ export class TopicService implements ITopicService {
                             }
                         }
                     } else {
+                        filterObj[key] = { $regex: value, $options: 'i' }
                         searchMatchArr.push({ [key]: { $regex: value, $options: 'i' } })
                     }
                 }
@@ -131,9 +134,12 @@ export class TopicService implements ITopicService {
 
         const finalQuery = {
             ...queryObj,
-            ...searchMatchObj,
+            // ...searchMatchObj,
+            ...filterObj,
             ...dateMatch
           }
+
+          console.log("Topic finalQuery", JSON.stringify(finalQuery))
 
         const [results, total] = await Promise.all([
             Topic.find(finalQuery).skip(skip).limit(pageSize).sort(sort),

@@ -1,8 +1,8 @@
 // import { Request } from 'express';
 import { UserService } from '../services/userService';
 import { ApiResponse } from '../utils/apiResponse';
-import { PaginationQuery, PaginationResult } from '../utils/pagination';
-import { Body, Controller, Get, Path, Post, Put, Delete, Query, Route, Security, Tags, Request, Hidden } from 'tsoa';
+import { handlePagination, PaginationQuery, PaginationQueryForSwagger, PaginationResult } from '../utils/pagination';
+import { Body, Controller, Get, Path, Post, Put, Delete, Query, Route, Security, Tags, Request, Hidden, Queries } from 'tsoa';
 import { IUser, UserRole } from '../models/userModel';
 
 interface SchoolCreationParams {
@@ -40,7 +40,7 @@ export class SchoolController extends Controller {
             lastName: userData.name,
             role: UserRole.School
         };
-        const user = await this.userService.createUser(data, currUser);
+        const user = await this.userService.create(data, currUser);
         return new ApiResponse(201, true, 'School created successfully', user);
     }
 
@@ -55,7 +55,7 @@ export class SchoolController extends Controller {
             ...userData,
             lastName: userData.name,
         };
-        const user = await this.userService.updateUser(id, data);
+        const user = await this.userService.update(id, data, currUser);
         return new ApiResponse(200, true, 'School updated successfully', user);
     }
 
@@ -65,7 +65,7 @@ export class SchoolController extends Controller {
         @Path() id: string,
         @Query() @Hidden() currUser?: IUser
     ): Promise<ApiResponse<IUser | null>> {
-        const user = await this.userService.deleteUser(id);
+        const user = await this.userService.delete(id, currUser);
         return new ApiResponse(200, true, 'School deleted successfully', user);
     }
 
@@ -75,21 +75,17 @@ export class SchoolController extends Controller {
         @Path() id: string,
         @Query() @Hidden() currUser?: IUser
     ): Promise<ApiResponse<IUser | null>> {
-        const user = await this.userService.getUser(id);
+        const user = await this.userService.getById(id, currUser);
         return new ApiResponse(200, true, 'School retrieved successfully', user);
     }
 
     @Get()
     @Security('jwt', ['admin', 'school'])
     public async getAll(
-        @Query() pageNumber: number = 1,
-        @Query() pageSize: number = 20,
-        @Query() query?: string,
-        @Query() role?: UserRole,
+        @Queries() queryParams: PaginationQueryForSwagger,
         @Query() @Hidden() currUser?: IUser
     ): Promise<ApiResponse<PaginationResult<IUser>>> {
-        const options: PaginationQuery = { pageNumber, pageSize, query };
-        const result = await this.userService.listUsers(options, UserRole.School, currUser);
+        const result = await this.userService.getAll(handlePagination(queryParams, { role: UserRole.School }) as PaginationQuery, currUser);
         return new ApiResponse(200, true, 'School retrieved successfully', result);
     }
 }

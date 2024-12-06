@@ -1,8 +1,8 @@
 // import { Request } from 'express';
 import { UserService } from '../services/userService';
 import { ApiResponse } from '../utils/apiResponse';
-import { PaginationQuery, PaginationResult } from '../utils/pagination';
-import { Body, Controller, Get, Path, Post, Put, Delete, Query, Route, Security, Tags, Request, Hidden } from 'tsoa';
+import { handlePagination, PaginationQuery, PaginationQueryForSwagger, PaginationResult } from '../utils/pagination';
+import { Body, Controller, Get, Path, Post, Put, Delete, Query, Route, Security, Tags, Request, Hidden, Queries } from 'tsoa';
 import { IUser, UserRole } from '../models/userModel';
 
 interface UserCreationParams {
@@ -49,7 +49,7 @@ export class UserController extends Controller {
     public async createUser(
         @Body() userData: UserCreationParams,
         @Query() @Hidden() currUser?: IUser): Promise<ApiResponse<IUser | null>> {
-        const user = await this.userService.createUser(userData, currUser);
+        const user = await this.userService.create(userData, currUser);
         return new ApiResponse(201, true, 'User created successfully', user);
     }
 
@@ -60,7 +60,7 @@ export class UserController extends Controller {
         @Body() userData: UserUpdateParams,
         @Query() @Hidden() currUser?: IUser
     ): Promise<ApiResponse<IUser | null>> {
-        const user = await this.userService.updateUser(id, userData);
+        const user = await this.userService.update(id, userData, currUser);
         return new ApiResponse(200, true, 'User updated successfully', user);
     }
 
@@ -70,7 +70,7 @@ export class UserController extends Controller {
         @Path() id: string,
         @Query() @Hidden() currUser?: IUser
     ): Promise<ApiResponse<IUser | null>> {
-        const user = await this.userService.deleteUser(id);
+        const user = await this.userService.delete(id, currUser);
         return new ApiResponse(200, true, 'User deleted successfully', user);
     }
 
@@ -80,21 +80,17 @@ export class UserController extends Controller {
         @Path() id: string,
         @Query() @Hidden() currUser?: IUser
     ): Promise<ApiResponse<IUser | null>> {
-        const user = await this.userService.getUser(id);
+        const user = await this.userService.getById(id, currUser);
         return new ApiResponse(200, true, 'User retrieved successfully', user);
     }
 
     @Get()
-    @Security('jwt', ['admin'])
-    public async listUsers(
-        @Query() pageNumber: number = 1,
-        @Query() pageSize: number = 20,
-        @Query() query?: string,
-        @Query() role?: UserRole,
+    @Security('jwt', ['admin', 'school'])
+    public async getAll(
+        @Queries() queryParams: PaginationQueryForSwagger,
         @Query() @Hidden() currUser?: IUser
     ): Promise<ApiResponse<PaginationResult<IUser>>> {
-        const options: PaginationQuery = { pageNumber, pageSize, query };
-        const result = await this.userService.listUsers(options, role as any, currUser);
-        return new ApiResponse(200, true, 'Users retrieved successfully', result);
+        const result = await this.userService.getAll(handlePagination(queryParams) as PaginationQuery, currUser);
+        return new ApiResponse(200, true, 'School retrieved successfully', result);
     }
 }

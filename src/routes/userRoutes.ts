@@ -46,13 +46,7 @@ router.get('/:id', authMiddleware([UserRole.Admin, UserRole.Teacher, UserRole.St
 });
 router.get('/', authMiddleware([UserRole.Admin, UserRole.School]), async (req, res, next) => {
     try {
-        const { pageNumber = 1, pageSize = 20 } = req.query;
-        const query = req.query.query || "";
-        console.log('role ----- ', req.query.role);
-        const roleName = toTitleCase(req.query.role as string || '');
-        const role = UserRole[roleName as keyof typeof UserRole] || undefined;
-        console.log('role', role);
-        const result = await userController.listUsers(+pageNumber, +pageSize, query as string, role as any, req.user as IUser);
+        const result = await userController.getAll(req.query as any, req.user as IUser);
         res.json(result);
     } catch (error: ApiError | any) {
         errorHandler(error, req, res, next);

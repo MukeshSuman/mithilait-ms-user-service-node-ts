@@ -45,9 +45,7 @@ router.get('/:id', authMiddleware([UserRole.Admin, UserRole.School]), async (req
 });
 router.get('/', authMiddleware([UserRole.Admin, UserRole.School]), async (req, res, next) => {
     try {
-        const { pageNumber = 1, pageSize = 20 } = req.query;
-        const query = req.query.query || "";
-        const result = await schoolController.getAll(+pageNumber, +pageSize, query as string, UserRole.School, req.user as IUser);
+        const result = await schoolController.getAll(req.query as any, req.user as IUser);
         res.json(result);
     } catch (error: ApiError | any) {
         errorHandler(error, req, res, next);

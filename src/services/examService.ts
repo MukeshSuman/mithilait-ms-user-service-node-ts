@@ -203,7 +203,7 @@ export class ExamService implements IExamService {
     }
 
     if (isObjectEmpty(sort)) {
-      sort = convertSortObject({ createdAt: 'asc' })
+      sort = convertSortObject({ createdAt: 'desc' })
     }
 
     const searchMatchArr: Array<any> = [];

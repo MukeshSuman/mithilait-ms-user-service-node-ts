@@ -5,9 +5,11 @@ import { generateToken, verifyToken } from '../utils/jwtUtils';
 import { IUserService, IUserWithToken } from "../interfaces/IUserService";
 import { ApiErrors } from "../constants";
 import mongoose from "mongoose";
+import { convertSortObject } from '../utils/convertSortObject';
+import { isObjectEmpty } from '../utils/mix';
 
 export class UserService implements IUserService {
-    async createUser(userData: Partial<IUser>, currUser?: IUser): Promise<IUser> {
+    async create(userData: Partial<IUser>, currUser?: IUser): Promise<IUser> {
         if (currUser?.role && ![UserRole.Teacher, UserRole.Student, UserRole.Admin, UserRole.School].includes(currUser?.role)) throw new ApiError(ApiErrors.InsufficientPermissions);
         if (userData.role === UserRole.Admin) throw new ApiError(ApiErrors.InsufficientPermissions);
         if (userData?.role === UserRole.School && currUser?.role !== UserRole.Admin) throw new ApiError(ApiErrors.InsufficientPermissions);
@@ -25,7 +27,7 @@ export class UserService implements IUserService {
         return user;
     }
 
-    async updateUser(userId: string, userData: Partial<IUser>, currUser?: IUser): Promise<IUser> {
+    async update(userId: string, userData: Partial<IUser>, currUser?: IUser): Promise<IUser> {
         delete userData.role;
         console.log("userData==========================", userData);
         console.log("userId =========================", userId);
@@ -34,23 +36,21 @@ export class UserService implements IUserService {
         return user;
     }
 
-    async deleteUser(userId: string, currUser?: IUser): Promise<IUser> {
+    async delete(userId: string, currUser?: IUser): Promise<IUser> {
         const user = await User.findByIdAndUpdate(userId, { isDeleted: true }, { new: true });
         if (!user) throw new ApiError(ApiErrors.NotFound);
         return user;
     }
 
-    async getUser(userId: string, currUser?: IUser): Promise<IUser> {
+    async getById(userId: string, currUser?: IUser): Promise<IUser> {
         const user = await User.findById(userId);
         if (!user || user.isDeleted) throw new ApiError(ApiErrors.NotFound);
         return user;
     }
 
-    async listUsers(options: PaginationQuery, role: UserRole, currUser?: IUser): Promise<PaginationResult<IUser>> {
-        console.log("currUser==========================", currUser);
-        console.log("role==========================", role);
+    async getAll(options: PaginationQuery, currUser?: IUser): Promise<PaginationResult<IUser>> {
         if (currUser?.role && ![UserRole.Teacher, UserRole.School, UserRole.Admin].includes(currUser?.role)) throw new ApiError(ApiErrors.InsufficientPermissions);
-        const { pageNumber = 1, pageSize = 20, query } = options;
+        const { pageNumber = 1, pageSize = 20, query, search } = options;
         const skip = (pageNumber - 1) * pageSize;
 
         const queryObj: any = { isDeleted: false };
@@ -66,26 +66,92 @@ export class UserService implements IUserService {
         }
 
         if (currUser?.role === UserRole.Admin) {
-            if (!role) {
+            if (!options?.role) {
                 queryObj.role = {
                     $in: [UserRole.Teacher, UserRole.Student]
                 };
-            } else {
-                queryObj.role = role;
+            } else if(options?.role) {
+                queryObj.role = options?.role;
             }
         }
 
-
-        if (query) {
+        if (query || search) {
             queryObj.$or = [
-                { username: { $regex: query, $options: 'i' } },
-                { email: { $regex: query, $options: 'i' } }
+                { firstName: { $regex: query || search, $options: 'i' } },
+                { lastName: { $regex: query || search, $options: 'i' } }
             ];
         }
 
+        let sort = convertSortObject(options.sort || {});
+
+        if (options.sortField && options.sortOrder) {
+            sort = {
+                ...sort,
+                ...convertSortObject({ [options.sortField]: options.sortOrder })
+            }
+        }
+
+        if (isObjectEmpty(sort)) {
+            sort = convertSortObject({ createdAt: 'desc' })
+        }
+
+        const searchMatchArr: Array<any> = [];
+        let searchMatchObj = {}
+        let dateMatch: any = {}
+        let filterObj:any = {} 
+
+
+        if (!isObjectEmpty(options.filters || {})) {
+            Object.entries(options.filters || {}).forEach(([key, value]) => {
+                if (value) {
+                    if (key.startsWith("startDate") || key.startsWith("fromDate")) {
+                        const tempValue = new Date(value as string)
+                        if (dateMatch.createdAt) {
+                            dateMatch.createdAt = {
+                                ...dateMatch.createdAt,
+                                $gte: tempValue
+                            }
+                        } else {
+                            dateMatch.createdAt = {
+                                $gte: tempValue
+                            }
+                        }
+                    } else if (key.startsWith("endDate") || key.startsWith("toDate")) {
+                        const tempValue = new Date(value as string)
+                        if (dateMatch.createdAt) {
+                            dateMatch.createdAt = {
+                                ...dateMatch.createdAt,
+                                $lte: tempValue
+                            }
+                        } else {
+                            dateMatch.createdAt = {
+                                $lte: tempValue
+                            }
+                        }
+                    } else {
+                        filterObj[key] = { $regex: value, $options: 'i' }
+                        searchMatchArr.push({ [key]: { $regex: value, $options: 'i' } })
+                    }
+                }
+            });
+            if (searchMatchArr.length) {
+                searchMatchObj = {
+                    $or: searchMatchArr
+                }
+            }
+        }
+
+        const finalQuery = {
+            ...queryObj,
+            // ...searchMatchObj,
+            ...filterObj,
+            ...dateMatch
+          }
+
+
         const [users, total] = await Promise.all([
-            User.find(queryObj).skip(skip).limit(pageSize).sort({ createdAt: -1 }),
-            User.countDocuments(queryObj),
+            User.find(finalQuery).skip(skip).limit(pageSize).sort(sort),
+            User.countDocuments(finalQuery),
         ]);
 
         return {
@@ -105,7 +171,7 @@ export class UserService implements IUserService {
         }
         const tempUser = user.toJSON();
 
-        const token = generateToken(tempUser);
+        const token = generateToken(tempUser, '8h');
         const refreshToken = generateToken(tempUser, '7d');
 
         return {
@@ -115,7 +181,7 @@ export class UserService implements IUserService {
         };;
     }
 
-    async refreshToken(refreshToken: string): Promise<{ token: string; refreshToken: string; }> {
+    async refreshToken(refreshToken: string): Promise<IUserWithToken> {
         const decoded = verifyToken(refreshToken);
         if (!decoded || typeof decoded === 'string') {
             throw new ApiError(ApiErrors.InvalidRefreshToken);
@@ -129,7 +195,7 @@ export class UserService implements IUserService {
         const newToken = generateToken(user);
         const newRefreshToken = generateToken(user, '7d');
 
-        return { token: newToken, refreshToken: newRefreshToken };
+        return { ...user.toJSON(), token: newToken, refreshToken: newRefreshToken };
     }
 
     async bulkStudentInsertOrUpdate(students: Array<any>, currUser?: IUser): Promise<any> {

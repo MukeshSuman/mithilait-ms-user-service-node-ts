@@ -17,7 +17,7 @@ export class AuthController extends Controller {
     @Get('me')
     @Security('jwt')
     public async me(@Request() req: any): Promise<ApiResponse<null>> {
-        const result = await this.userService.getUser(req.user.id);
+        const result = await this.userService.getById(req.user.id);
         return new ApiResponse(200, true, 'successful', result);
     }
 
