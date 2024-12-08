@@ -53,10 +53,8 @@ export class AuthController extends Controller {
 
   @Post('logout')
   @Security('jwt')
-  public async logout(
-    @Request() req: any
-  ): Promise<ApiResponse<null>> {
-    console.log('logout', req.user)
+  public async logout(@Request() req: any): Promise<ApiResponse<null>> {
+    console.log('logout', req.user);
     await this.userService.logout();
     return new ApiResponse(200, true, 'Logout successful', null);
   }

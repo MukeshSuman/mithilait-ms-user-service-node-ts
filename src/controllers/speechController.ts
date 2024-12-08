@@ -23,19 +23,17 @@ export class SpeechController extends Controller {
 
   @Get('transcribe-audio-file')
   // @Security('jwt')
-  public async transcribeAudioFile(
-    // @Request() req: any
-  ): Promise<ApiResponse<any>> {
+  public async transcribeAudioFile() // @Request() req: any
+  : Promise<ApiResponse<any>> {
     await this.speechService.transcribeAudioFile();
     return new ApiResponse(200, true, 'successful', { pass: 'pass' });
   }
 
   @Post('transcribe-audio-file-a')
-  public async transcribeAudioFileA(
-    // @Request() req: any
-  ): Promise<ApiResponse<any>> {
+  public async transcribeAudioFileA() // @Request() req: any
+  : Promise<ApiResponse<any>> {
     // const result =
-      await this.speechService.pronunciationAssessmentContinuousWithFile();
+    await this.speechService.pronunciationAssessmentContinuousWithFile();
     return new ApiResponse(200, true, 'successful', { pass: 'pass' });
   }
 }

@@ -3,7 +3,7 @@
 export type SortOrder = 'asc' | 'desc';
 
 export interface CommonFields {
-  fakeKey?: string
+  fakeKey?: string;
 }
 
 export type FilterFields = Partial<Record<keyof CommonFields, string>>;

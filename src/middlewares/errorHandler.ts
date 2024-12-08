@@ -88,7 +88,7 @@ export const errorHandler = (
       );
   }
 
-  next('An unexpected error occurred')
+  next('An unexpected error occurred');
   // Handle unknown errors
   return res
     .status(500)

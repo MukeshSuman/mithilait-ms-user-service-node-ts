@@ -53,7 +53,7 @@ export class TopicService implements ITopicService {
   }
 
   async delete(id: string, currUser?: IUser): Promise<ITopic> {
-    console.log("currUser role", currUser?.role);
+    console.log('currUser role', currUser?.role);
     const result = await Topic.findByIdAndUpdate(
       id,
       { isDeleted: true },
@@ -64,7 +64,7 @@ export class TopicService implements ITopicService {
   }
 
   async getById(id: string, currUser?: IUser): Promise<ITopic> {
-    console.log("currUser role", currUser?.role);
+    console.log('currUser role', currUser?.role);
     const result = await Topic.findById(id);
     if (!result || result.isDeleted) throw new ApiError(ApiErrors.NotFound);
     const data: any = result.toJSON();
@@ -72,7 +72,7 @@ export class TopicService implements ITopicService {
   }
 
   async get(data: Record<string, any>, currUser?: IUser): Promise<ITopic[]> {
-    console.log("currUser role", currUser?.role);
+    console.log('currUser role', currUser?.role);
     const result = await Topic.find(data).lean();
     if (!result) throw new ApiError(ApiErrors.NotFound);
     // const finalData:any = result.map((item) => item.toJSON()).toJSON();

@@ -95,7 +95,7 @@ router.delete(
     try {
       const result = await studentController.delete(req.params.id);
       res.json(result);
-    } catch (error:  any) {
+    } catch (error: any) {
       errorHandler(error, req, res, next);
     }
   }
@@ -110,7 +110,7 @@ router.get(
         req.user as IUser
       );
       res.json(result);
-    } catch (error:  any) {
+    } catch (error: any) {
       errorHandler(error, req, res, next);
     }
   }
@@ -125,7 +125,7 @@ router.get(
         req.user as IUser
       );
       res.json(result);
-    } catch (error:  any) {
+    } catch (error: any) {
       errorHandler(error, req, res, next);
     }
   }
@@ -145,7 +145,7 @@ router.post(
         req.user as IUser
       );
       res.json(result);
-    } catch (error:  any) {
+    } catch (error: any) {
       errorHandler(error, req, res, next);
     }
   }

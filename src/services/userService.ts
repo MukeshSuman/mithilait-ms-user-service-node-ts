@@ -48,7 +48,7 @@ export class UserService implements IUserService {
     currUser?: IUser
   ): Promise<IUser> {
     delete userData.role;
-    console.log("currUser role", currUser?.role);
+    console.log('currUser role', currUser?.role);
     console.log('userData==========================', userData);
     console.log('userId =========================', userId);
     const user = await User.findByIdAndUpdate(userId, userData, { new: true });
@@ -57,7 +57,7 @@ export class UserService implements IUserService {
   }
 
   async delete(userId: string, currUser?: IUser): Promise<IUser> {
-    console.log("currUser role", currUser?.role);
+    console.log('currUser role', currUser?.role);
     const user = await User.findByIdAndUpdate(
       userId,
       { isDeleted: true },
@@ -68,7 +68,7 @@ export class UserService implements IUserService {
   }
 
   async getById(userId: string, currUser?: IUser): Promise<IUser> {
-    console.log("currUser role", currUser?.role);
+    console.log('currUser role', currUser?.role);
     const user = await User.findById(userId);
     if (!user || user.isDeleted) throw new ApiError(ApiErrors.NotFound);
     return user;

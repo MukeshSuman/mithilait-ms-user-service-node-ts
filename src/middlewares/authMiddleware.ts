@@ -30,14 +30,14 @@ export const authMiddleware = (roles?: UserRole[]) => {
 
       next();
     } catch (error: any) {
-      console.log('error', error)
+      console.log('error', error);
       next(new ApiError(ApiErrors.UnAuthorized));
     }
   };
 };
 
 export function expressAuthentication(
-  request: any,
+  request: any
   // securityName: string,
   // scopes?: string[]
 ) {
