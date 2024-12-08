@@ -97,8 +97,8 @@ export class UserService implements IUserService {
 
         const searchMatchArr: Array<any> = [];
         let searchMatchObj = {}
-        let dateMatch: any = {}
-        let filterObj:any = {} 
+        const dateMatch: any = {}
+        const filterObj:any = {} 
 
 
         if (!isObjectEmpty(options.filters || {})) {
@@ -201,7 +201,7 @@ export class UserService implements IUserService {
     async bulkStudentInsertOrUpdate(students: Array<any>, currUser?: IUser): Promise<any> {
         let totalAdded = 0;
         let totalUpdated = 0;
-        let totalError = 0;
+        const totalError = 0;
 
         const schoolId = new mongoose.Types.ObjectId(currUser?.id);
         const tempNumber = new Date().getTime();

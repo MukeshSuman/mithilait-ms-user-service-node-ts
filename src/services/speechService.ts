@@ -53,15 +53,15 @@ export class SpeechService {
     const fileName = "temp/en-US_0.wav";
     const fullPath = getPath(fileName);
     // const fullPath = TEMP_DIR + fileName;
-    var audioConfig = sdk.AudioConfig.fromWavFileInput(
+    const audioConfig = sdk.AudioConfig.fromWavFileInput(
       fs.readFileSync(fullPath)
     );
-    var speechConfig = sdk.SpeechConfig.fromSubscription(
+    const speechConfig = sdk.SpeechConfig.fromSubscription(
       "816885c4c33c43668244218e3d38a261",
       "centralindia"
     );
 
-    var reference_text =
+    const reference_text =
       "Today was a beautiful day. We had a great time taking a long walk outside in the morning. The countryside was in full bloom, yet the air was crisp and cold. Towards the end of the day, clouds came in, forecasting much needed rain.";
     // create pronunciation assessment config, set grading system, granularity and if enable miscue based on your requirement.
     const pronunciationAssessmentConfig = new sdk.PronunciationAssessmentConfig(
@@ -72,11 +72,11 @@ export class SpeechService {
     );
     pronunciationAssessmentConfig.enableProsodyAssessment = true;
 
-    var language = "en-US";
+    const language = "en-US";
     speechConfig.speechRecognitionLanguage = language;
 
     // create the speech recognizer.
-    var reco = new sdk.SpeechRecognizer(speechConfig, audioConfig);
+    const reco = new sdk.SpeechRecognizer(speechConfig, audioConfig);
     pronunciationAssessmentConfig.applyTo(reco);
 
     const scoreNumber: any = {
@@ -86,13 +86,13 @@ export class SpeechService {
       prosodyScore: 0,
     };
     const allWords: any[] = [];
-    var currentText: any[] = [];
-    var startOffset = 0;
-    var recognizedWords: any[] = [];
-    var fluencyScores: any[] = [];
-    var prosodyScores: any[] = [];
-    var durations: any[] = [];
-    var jo: any = {};
+    let currentText: any[] = [];
+    let startOffset = 0;
+    const recognizedWords: any[] = [];
+    const fluencyScores: any[] = [];
+    const prosodyScores: any[] = [];
+    const durations: any[] = [];
+    let jo: any = {};
 
     // Before beginning speech recognition, setup the callbacks to be invoked when an event occurs.
 
@@ -100,7 +100,7 @@ export class SpeechService {
     // You will receive one or more recognizing events as a speech phrase is recognized, with each containing
     // more recognized speech. The event will contain the text for the recognition since the last phrase was recognized.
     reco.recognizing = function (s, e) {
-      var str =
+      const str =
         "(recognizing) Reason: " +
         sdk.ResultReason[e.result.reason] +
         " Text: " +
@@ -113,7 +113,7 @@ export class SpeechService {
     // For continuous recognition, you will get one recognized event for each phrase recognized.
     reco.recognized = function (s, e) {
       console.log("pronunciation assessment for: ", e.result.text);
-      var pronunciation_result = sdk.PronunciationAssessmentResult.fromResult(
+      const pronunciation_result = sdk.PronunciationAssessmentResult.fromResult(
         e.result
       );
       console.log(
@@ -183,10 +183,10 @@ export class SpeechService {
           (res: { [x: string]: any }) => resTextArray.push(res["w"])
         );
       } else {
-        let resTextProcessed = (resText.toLocaleLowerCase() ?? "")
+        const resTextProcessed = (resText.toLocaleLowerCase() ?? "")
           .replace(new RegExp('[!"#$%&()*+,-./:;<=>?@[^_`{|}~]+', "g"), "")
           .replace(new RegExp("]+", "g"), "");
-        let wholelyrics = (reference_text.toLocaleLowerCase() ?? "")
+        const wholelyrics = (reference_text.toLocaleLowerCase() ?? "")
           .replace(new RegExp('[!"#$%&()*+,-./:;<=>?@[^_`{|}~]+', "g"), "")
           .replace(new RegExp("]+", "g"), "");
         wholelyricsArry = wholelyrics.split(" ");
@@ -304,7 +304,7 @@ export class SpeechService {
         reference_words = wholelyricsArryRes;
       }
 
-      let recognizedWordsRes = [];
+      const recognizedWordsRes = [];
       _.forEach(
         recognizedWords,
         (word: { PronunciationAssessment: { ErrorType: string } }) => {
@@ -421,7 +421,7 @@ export class SpeechService {
     reco.canceled = function (s, e) {
       console.log(e);
       if (e.reason === sdk.CancellationReason.Error) {
-        var str =
+        const str =
           "(cancel) Reason: " +
           sdk.CancellationReason[e.reason] +
           ": " +
@@ -575,7 +575,7 @@ export class SpeechService {
     recognizer.canceled = (s, e) => {
       console.log(e);
       if (e.reason === CancellationReason.Error) {
-        var str =
+        const str =
           "(cancel) Reason: " +
           CancellationReason[e.reason] +
           ": " +

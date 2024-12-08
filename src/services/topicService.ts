@@ -88,8 +88,8 @@ export class TopicService implements ITopicService {
 
         const searchMatchArr: Array<any> = [];
         let searchMatchObj = {}
-        let dateMatch: any = {}
-        let filterObj:any = {} 
+        const dateMatch: any = {}
+        const filterObj:any = {} 
 
 
         if (!isObjectEmpty(options.filters || {})) {

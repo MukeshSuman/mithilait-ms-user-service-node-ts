@@ -208,7 +208,7 @@ export class ExamService implements IExamService {
 
     const searchMatchArr: Array<any> = [];
     let searchMatchObj = {}
-    let dateMatch: any = {}
+    const dateMatch: any = {}
 
     if (!isObjectEmpty(options.filters || {})) {
       Object.entries(options.filters || {}).forEach(([key, value]) => {

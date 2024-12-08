@@ -10,7 +10,9 @@
 		"prebuild": "tsoa spec-and-routes",
 		"test": "jest",
 		"swagger": "tsoa spec-and-routes",
-		"lint": "eslint ."
+		"lint": "eslint .",
+		"lint-fix": "eslint . --fix"
+
 	},
 	"dependencies": {
 		"@eslint/compat": "^1.2.4",
