@@ -1,4 +1,4 @@
-import { IUser, UserRole, User } from '../models/userModel';
+import { IUser, UserRole } from '../models/userModel';
 import { IFile, File } from '../models/fileModel';
 import { ApiError } from '../utils/apiResponse';
 import { PaginationQuery, PaginationResult } from '../utils/pagination';
@@ -60,12 +60,15 @@ export class FileService implements IFileService {
     data: Partial<IFile>,
     currUser?: IUser
   ): Promise<IFile> {
+    console.log('currUser log', currUser?.role)
     const result = await File.findByIdAndUpdate(id, data, { new: true });
     if (!result) throw new ApiError(ApiErrors.NotFound);
     return result;
   }
 
   async delete(id: string, currUser?: IUser): Promise<IFile> {
+    console.log('currUser log', currUser?.role)
+
     const result = await File.findByIdAndUpdate(
       id,
       { isDeleted: true },
@@ -76,6 +79,7 @@ export class FileService implements IFileService {
   }
 
   async getById(id: string, currUser?: IUser): Promise<IFile> {
+    console.log('currUser log', currUser?.role)
     const result = await File.findById(id);
     if (!result || result.isDeleted) throw new ApiError(ApiErrors.NotFound);
     const data: any = result.toJSON();

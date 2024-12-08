@@ -5,12 +5,11 @@ import { validate } from '../middlewares/validate';
 import {
   createUserSchema,
   updateUserSchema,
-  loginSchema,
 } from '../validators/userValidator';
 import { IUser, UserRole } from '../models/userModel';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ApiError } from '../utils/apiResponse';
 import { errorHandler } from '../middlewares/errorHandler';
-import { toTitleCase } from '../utils/mix';
 
 const router = express.Router();
 const userController = new UserController();

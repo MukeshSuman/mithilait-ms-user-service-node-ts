@@ -402,9 +402,9 @@ function startPronunciationAssessment(socket: Socket, expectedText: string) {
 
   recognizer.recognized = (s, e) => {
     if (e.result.reason === sdk.ResultReason.RecognizedSpeech) {
-      const jsonResult = e.result.properties.getProperty(
-        sdk.PropertyId.SpeechServiceResponse_JsonResult
-      );
+      // const jsonResult = e.result.properties.getProperty(
+      //   sdk.PropertyId.SpeechServiceResponse_JsonResult
+      // );
       const pronunciationResult2 = sdk.PronunciationAssessmentResult.fromResult(
         e.result
       );
@@ -423,7 +423,7 @@ function startPronunciationAssessment(socket: Socket, expectedText: string) {
         // completenessScore: pronunciationResult2.completenessScore,
       };
 
-      const pronunciationResult = JSON.parse(jsonResult);
+      // const pronunciationResult = JSON.parse(jsonResult);
       socket.emit('pronunciationResult', pronunciationResultScore);
     } else if (e.result.reason === sdk.ResultReason.NoMatch) {
       console.log('No speech recognized.');

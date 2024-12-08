@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-undef
 const socket = io('http://localhost:3090'); // Adjust the URL as needed
 
 let audioContext;

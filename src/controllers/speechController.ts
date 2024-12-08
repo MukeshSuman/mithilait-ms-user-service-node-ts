@@ -2,18 +2,12 @@
 import { SpeechService } from '../services/speechService';
 import { ApiResponse } from '../utils/apiResponse';
 import {
-  Body,
   Controller,
   Get,
-  Path,
   Post,
-  Put,
-  Delete,
-  Query,
   Route,
-  Security,
   Tags,
-  Request,
+  // Request,
 } from 'tsoa';
 // import { IUser } from '../models/userModel';
 
@@ -30,17 +24,17 @@ export class SpeechController extends Controller {
   @Get('transcribe-audio-file')
   // @Security('jwt')
   public async transcribeAudioFile(
-    @Request() req: any
+    // @Request() req: any
   ): Promise<ApiResponse<any>> {
-    const result = await this.speechService.transcribeAudioFile('');
+    await this.speechService.transcribeAudioFile();
     return new ApiResponse(200, true, 'successful', { pass: 'pass' });
   }
 
   @Post('transcribe-audio-file-a')
   public async transcribeAudioFileA(
-    @Request() req: any
+    // @Request() req: any
   ): Promise<ApiResponse<any>> {
-    const result =
+    // const result =
       await this.speechService.pronunciationAssessmentContinuousWithFile();
     return new ApiResponse(200, true, 'successful', { pass: 'pass' });
   }

@@ -19,7 +19,6 @@ import {
   Route,
   Security,
   Tags,
-  Request,
   Hidden,
   Queries,
 } from 'tsoa';

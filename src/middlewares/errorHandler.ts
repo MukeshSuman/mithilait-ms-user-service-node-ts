@@ -1,7 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { ApiError, ApiResponse } from '../utils/apiResponse';
 import { logger } from '../config/logger';
-import { date } from 'joi';
+// import { date } from 'joi';
 import { Error as MongooseError } from 'mongoose';
 import { MongoError } from 'mongodb';
 
@@ -9,7 +9,7 @@ export const errorHandler = (
   err: Error,
   req: Request,
   res: Response,
-  next: NextFunction
+  // next: NextFunction
 ) => {
   logger.error(err.stack);
 

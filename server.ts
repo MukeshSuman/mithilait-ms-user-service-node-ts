@@ -5,7 +5,7 @@ import multer from 'multer';
 import fs from 'fs';
 import * as sdk from 'microsoft-cognitiveservices-speech-sdk';
 import path from 'path';
-import { PassThrough } from "stream";
+// import { PassThrough } from "stream";
 
 const app = express();
 const port = 3091;
@@ -296,68 +296,68 @@ if (!fs.existsSync(path.join(__dirname, 'recordings'))) {
 
 
 // Real-time pronunciation assessment
-function assessPronunciationLive(ws: WebSocket, onStop: () => void) {
-    const speechConfig = sdk.SpeechConfig.fromSubscription(subscriptionKey, serviceRegion);
-    const audioConfig = sdk.AudioConfig.fromDefaultMicrophoneInput();
-    // const recognizer = new sdk.SpeechRecognizer(speechConfig);
+// function assessPronunciationLive(ws: WebSocket, onStop: () => void) {
+//     const speechConfig = sdk.SpeechConfig.fromSubscription(subscriptionKey, serviceRegion);
+//     const audioConfig = sdk.AudioConfig.fromDefaultMicrophoneInput();
+//     // const recognizer = new sdk.SpeechRecognizer(speechConfig);
 
-    // Set up pronunciation assessment configuration
-    const pronunciationAssessmentConfig = new sdk.PronunciationAssessmentConfig(
-        referenceText,
-        sdk.PronunciationAssessmentGradingSystem.HundredMark,
-        sdk.PronunciationAssessmentGranularity.Phoneme
-    );
+//     // Set up pronunciation assessment configuration
+//     const pronunciationAssessmentConfig = new sdk.PronunciationAssessmentConfig(
+//         referenceText,
+//         sdk.PronunciationAssessmentGradingSystem.HundredMark,
+//         sdk.PronunciationAssessmentGranularity.Phoneme
+//     );
 
-    // Audio configuration - using default microphone
-    // const audioConfig = sdk.AudioConfig.fromDefaultMicrophoneInput();
+//     // Audio configuration - using default microphone
+//     // const audioConfig = sdk.AudioConfig.fromDefaultMicrophoneInput();
 
-    const recognizer = new sdk.SpeechRecognizer(speechConfig, audioConfig);
-    pronunciationAssessmentConfig.applyTo(recognizer);
+//     const recognizer = new sdk.SpeechRecognizer(speechConfig, audioConfig);
+//     pronunciationAssessmentConfig.applyTo(recognizer);
 
-    // pronunciationAssessmentConfig.applyTo(recognizer);
+//     // pronunciationAssessmentConfig.applyTo(recognizer);
 
-    recognizer.startContinuousRecognitionAsync();
+//     recognizer.startContinuousRecognitionAsync();
 
-    recognizer.recognizing = (s, e) => {
-        ws.send(JSON.stringify({ recognizedText: e.result.text, type: 'intermediate' }));
-    };
+//     recognizer.recognizing = (s, e) => {
+//         ws.send(JSON.stringify({ recognizedText: e.result.text, type: 'intermediate' }));
+//     };
 
-    recognizer.recognized = (s, e) => {
-        if (e.result.reason === sdk.ResultReason.RecognizedSpeech) {
-            const pronunciationResult = sdk.PronunciationAssessmentResult.fromResult(e.result);
-            ws.send(JSON.stringify({
-                recognizedText: e.result.text,
-                pronunciationScore: pronunciationResult.pronunciationScore,
-                accuracyScore: pronunciationResult.accuracyScore,
-                fluencyScore: pronunciationResult.fluencyScore,
-                completenessScore: pronunciationResult.completenessScore,
-                type: 'final'
-            }));
-        } else {
-            ws.send(JSON.stringify({ error: 'Speech not recognized' }));
-        }
-    };
+//     recognizer.recognized = (s, e) => {
+//         if (e.result.reason === sdk.ResultReason.RecognizedSpeech) {
+//             const pronunciationResult = sdk.PronunciationAssessmentResult.fromResult(e.result);
+//             ws.send(JSON.stringify({
+//                 recognizedText: e.result.text,
+//                 pronunciationScore: pronunciationResult.pronunciationScore,
+//                 accuracyScore: pronunciationResult.accuracyScore,
+//                 fluencyScore: pronunciationResult.fluencyScore,
+//                 completenessScore: pronunciationResult.completenessScore,
+//                 type: 'final'
+//             }));
+//         } else {
+//             ws.send(JSON.stringify({ error: 'Speech not recognized' }));
+//         }
+//     };
 
-    recognizer.canceled = (s, e) => {
-        console.error('Recognition canceled:', e.errorDetails);
-        ws.send(JSON.stringify({ error: 'Recognition canceled: ' + e.errorDetails }));
-        recognizer.stopContinuousRecognitionAsync();
-        onStop();
-    };
+//     recognizer.canceled = (s, e) => {
+//         console.error('Recognition canceled:', e.errorDetails);
+//         ws.send(JSON.stringify({ error: 'Recognition canceled: ' + e.errorDetails }));
+//         recognizer.stopContinuousRecognitionAsync();
+//         onStop();
+//     };
 
-    recognizer.sessionStopped = (s, e) => {
-        console.log('Session stopped.');
-        recognizer.stopContinuousRecognitionAsync();
-        onStop();
-    };
+//     recognizer.sessionStopped = (s, e) => {
+//         console.log('Session stopped.');
+//         recognizer.stopContinuousRecognitionAsync();
+//         onStop();
+//     };
 
-    // @ts-ignore
-    ws.on('close', () => {
-        recognizer.stopContinuousRecognitionAsync();
-        recognizer.close();
-        onStop();
-    });
-}
+//     // @ts-ignore
+//     ws.on('close', () => {
+//         recognizer.stopContinuousRecognitionAsync();
+//         recognizer.close();
+//         onStop();
+//     });
+// }
 
 // Start the server
 server.listen(port, () => {

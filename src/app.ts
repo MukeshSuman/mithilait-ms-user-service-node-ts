@@ -3,7 +3,7 @@ import { config } from 'dotenv';
 import swaggerUi from 'swagger-ui-express';
 import { errorHandler } from './middlewares/errorHandler';
 import { connectDB } from './config/database';
-import { logger } from './config/logger';
+// import { logger } from './config/logger';
 import cors from 'cors';
 import { requestLogger } from './middlewares';
 import { userRouter } from './routes/userRoutes';

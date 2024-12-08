@@ -19,20 +19,18 @@ import {
   Route,
   Security,
   Tags,
-  Request,
   Hidden,
   UploadedFile,
   Queries,
 } from 'tsoa';
-import multer from 'multer';
+// import multer from 'multer';
 import xlsx from 'xlsx';
 import { IUser, UserRole } from '../models/userModel';
 import csvParser from 'csv-parser';
 import fs from 'fs';
-import { ApiErrors } from '../constants';
 import { generateFakeEmail, generateFakeUsername } from '../utils/mix';
 
-const upload = multer({ dest: 'upload/bulk-upload' });
+// const upload = multer({ dest: 'upload/bulk-upload' });
 
 interface StudentCreationParams {
   username: string;
@@ -184,7 +182,7 @@ export class StudentController extends Controller {
   }
 
   private parseCSV(file: Express.Multer.File): any {
-    const students: any[] = [];
+    // const students: any[] = [];
     // Parse the uploaded CSV file
     return new Promise((resolve, reject) => {
       const results: any[] = [];
