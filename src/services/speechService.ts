@@ -1,11 +1,11 @@
-import * as sdk from "microsoft-cognitiveservices-speech-sdk";
-import * as fs from "fs";
+import * as sdk from 'microsoft-cognitiveservices-speech-sdk';
+import * as fs from 'fs';
 // @ts-ignore ts
-import * as Segment from "segment";
-import * as difflib from "difflib";
-import _ from "lodash";
+import * as Segment from 'segment';
+import * as difflib from 'difflib';
+import _ from 'lodash';
 // import * as path from 'path';
-import { getPath, TEMP_DIR } from "../config";
+import { getPath, TEMP_DIR } from '../config';
 import {
   SpeechConfig,
   AudioConfig,
@@ -17,17 +17,17 @@ import {
   ResultReason,
   PropertyId,
   CancellationReason,
-} from "microsoft-cognitiveservices-speech-sdk";
-import { FileService } from "./fileService";
-import { ReportService } from "./reportService";
-import { ExamService } from "./examService";
+} from 'microsoft-cognitiveservices-speech-sdk';
+import { FileService } from './fileService';
+import { ReportService } from './reportService';
+import { ExamService } from './examService';
 // import fs from 'fs';
 // Replace with your Azure subscription key and service region
 
 // temp\en-US_0.wav
 export class SpeechService {
-  private subscriptionKey: string = "";
-  private serviceRegion: string = "";
+  private subscriptionKey: string = '';
+  private serviceRegion: string = '';
 
   private fileService: FileService;
   private reportService: ReportService;
@@ -38,31 +38,30 @@ export class SpeechService {
     this.fileService = new FileService();
     this.reportService = new ReportService();
     this.examService = new ExamService();
-    this.subscriptionKey =  process.env.AZURE_SPEECH_KEY || "fakekey";
-    this.serviceRegion = process.env.AZURE_SPEECH_REGION || "fakeregion";
-
+    this.subscriptionKey = process.env.AZURE_SPEECH_KEY || 'fakekey';
+    this.serviceRegion = process.env.AZURE_SPEECH_REGION || 'fakeregion';
   }
   async transcribeAudioFile(filePath: string): Promise<string> {
-    return "";
+    return '';
   }
 
   async pronunciationAssessmentContinuousWithFile(): Promise<any> {
     // provide a WAV file as an example. Replace it with your own.
     // const fullPath = path.join(__dirname, 'temp', 'en-US_0.wav');
     // const filePath = getPath(AUDIO_DIR, fileName);
-    const fileName = "temp/en-US_0.wav";
+    const fileName = 'temp/en-US_0.wav';
     const fullPath = getPath(fileName);
     // const fullPath = TEMP_DIR + fileName;
     const audioConfig = sdk.AudioConfig.fromWavFileInput(
       fs.readFileSync(fullPath)
     );
     const speechConfig = sdk.SpeechConfig.fromSubscription(
-      "816885c4c33c43668244218e3d38a261",
-      "centralindia"
+      '816885c4c33c43668244218e3d38a261',
+      'centralindia'
     );
 
     const reference_text =
-      "Today was a beautiful day. We had a great time taking a long walk outside in the morning. The countryside was in full bloom, yet the air was crisp and cold. Towards the end of the day, clouds came in, forecasting much needed rain.";
+      'Today was a beautiful day. We had a great time taking a long walk outside in the morning. The countryside was in full bloom, yet the air was crisp and cold. Towards the end of the day, clouds came in, forecasting much needed rain.';
     // create pronunciation assessment config, set grading system, granularity and if enable miscue based on your requirement.
     const pronunciationAssessmentConfig = new sdk.PronunciationAssessmentConfig(
       reference_text,
@@ -72,7 +71,7 @@ export class SpeechService {
     );
     pronunciationAssessmentConfig.enableProsodyAssessment = true;
 
-    const language = "en-US";
+    const language = 'en-US';
     speechConfig.speechRecognitionLanguage = language;
 
     // create the speech recognizer.
@@ -101,9 +100,9 @@ export class SpeechService {
     // more recognized speech. The event will contain the text for the recognition since the last phrase was recognized.
     reco.recognizing = function (s, e) {
       const str =
-        "(recognizing) Reason: " +
+        '(recognizing) Reason: ' +
         sdk.ResultReason[e.result.reason] +
-        " Text: " +
+        ' Text: ' +
         e.result.text;
       console.log(str);
     };
@@ -112,21 +111,21 @@ export class SpeechService {
     // This is the final event that a phrase has been recognized.
     // For continuous recognition, you will get one recognized event for each phrase recognized.
     reco.recognized = function (s, e) {
-      console.log("pronunciation assessment for: ", e.result.text);
+      console.log('pronunciation assessment for: ', e.result.text);
       const pronunciation_result = sdk.PronunciationAssessmentResult.fromResult(
         e.result
       );
       console.log(
-        " Accuracy score: ",
+        ' Accuracy score: ',
         pronunciation_result.accuracyScore,
-        "\n",
-        "pronunciation score: ",
+        '\n',
+        'pronunciation score: ',
         pronunciation_result.pronunciationScore,
-        "\n",
-        "completeness score : ",
+        '\n',
+        'completeness score : ',
         pronunciation_result.completenessScore,
-        "\n",
-        "fluency score: ",
+        '\n',
+        'fluency score: ',
         pronunciation_result.fluencyScore
       );
 
@@ -135,7 +134,7 @@ export class SpeechService {
           sdk.PropertyId.SpeechServiceResponse_JsonResult
         )
       );
-      const nb = jo["NBest"][0];
+      const nb = jo['NBest'][0];
       startOffset = nb.Words[0].Offset;
       const localtext = _.map(nb.Words, (item: { Word: string }) =>
         item.Word.toLowerCase()
@@ -143,7 +142,7 @@ export class SpeechService {
       currentText = currentText.concat(localtext);
       fluencyScores.push(nb.PronunciationAssessment.FluencyScore);
       prosodyScores.push(nb.PronunciationAssessment.ProsodyScore);
-      const isSucceeded = jo.RecognitionStatus === "Success";
+      const isSucceeded = jo.RecognitionStatus === 'Success';
       const nBestWords = jo.NBest[0].Words;
       const durationList: any[] = [];
       _.forEach(nBestWords, (word: { Duration: any }) => {
@@ -158,39 +157,39 @@ export class SpeechService {
     };
 
     function calculateOverallPronunciationScore() {
-      const resText = currentText.join(" ");
+      const resText = currentText.join(' ');
       let wholelyricsArry: any[] = [];
       let resTextArray: any[] = [];
 
-      if (["zh-cn"].includes(language.toLowerCase())) {
-        const resTextProcessed = (resText.toLocaleLowerCase() ?? "").replace(
-          new RegExp("[^a-zA-Z0-9\u4E00-\u9FA5']+", "g"),
-          " "
+      if (['zh-cn'].includes(language.toLowerCase())) {
+        const resTextProcessed = (resText.toLocaleLowerCase() ?? '').replace(
+          new RegExp("[^a-zA-Z0-9\u4E00-\u9FA5']+", 'g'),
+          ' '
         );
-        const wholelyrics = (reference_text.toLocaleLowerCase() ?? "").replace(
-          new RegExp("[^a-zA-Z0-9\u4E00-\u9FA5']+", "g"),
-          " "
+        const wholelyrics = (reference_text.toLocaleLowerCase() ?? '').replace(
+          new RegExp("[^a-zA-Z0-9\u4E00-\u9FA5']+", 'g'),
+          ' '
         );
         const segment = new Segment();
         segment.useDefault();
-        segment.loadDict("wildcard.txt");
+        segment.loadDict('wildcard.txt');
         _.map(
           segment.doSegment(wholelyrics, { stripPunctuation: true }),
-          (res: { [x: string]: any }) => wholelyricsArry.push(res["w"])
+          (res: { [x: string]: any }) => wholelyricsArry.push(res['w'])
         );
         _.map(
           segment.doSegment(resTextProcessed, { stripPunctuation: true }),
-          (res: { [x: string]: any }) => resTextArray.push(res["w"])
+          (res: { [x: string]: any }) => resTextArray.push(res['w'])
         );
       } else {
-        const resTextProcessed = (resText.toLocaleLowerCase() ?? "")
-          .replace(new RegExp('[!"#$%&()*+,-./:;<=>?@[^_`{|}~]+', "g"), "")
-          .replace(new RegExp("]+", "g"), "");
-        const wholelyrics = (reference_text.toLocaleLowerCase() ?? "")
-          .replace(new RegExp('[!"#$%&()*+,-./:;<=>?@[^_`{|}~]+', "g"), "")
-          .replace(new RegExp("]+", "g"), "");
-        wholelyricsArry = wholelyrics.split(" ");
-        resTextArray = resTextProcessed.split(" ");
+        const resTextProcessed = (resText.toLocaleLowerCase() ?? '')
+          .replace(new RegExp('[!"#$%&()*+,-./:;<=>?@[^_`{|}~]+', 'g'), '')
+          .replace(new RegExp(']+', 'g'), '');
+        const wholelyrics = (reference_text.toLocaleLowerCase() ?? '')
+          .replace(new RegExp('[!"#$%&()*+,-./:;<=>?@[^_`{|}~]+', 'g'), '')
+          .replace(new RegExp(']+', 'g'), '');
+        wholelyricsArry = wholelyrics.split(' ');
+        resTextArray = resTextProcessed.split(' ');
       }
       const wholelyricsArryRes = _.map(
         _.filter(wholelyricsArry, (item: any) => !!item),
@@ -206,8 +205,8 @@ export class SpeechService {
       );
       const lastWords = [];
       for (const d of diff.getOpcodes()) {
-        if (d[0] == "insert" || d[0] == "replace") {
-          if (["zh-cn"].includes(language.toLowerCase())) {
+        if (d[0] == 'insert' || d[0] == 'replace') {
+          if (['zh-cn'].includes(language.toLowerCase())) {
             for (let j = d[3], count = 0; j < d[4]; count++) {
               let len = 0;
               let bfind = false;
@@ -227,9 +226,9 @@ export class SpeechService {
                       allWords &&
                       allWords.length > 0 &&
                       allWords[index].PronunciationAssessment.ErrorType !==
-                        "Insertion"
+                        'Insertion'
                     ) {
-                      wordNew.PronunciationAssessment.ErrorType = "Insertion";
+                      wordNew.PronunciationAssessment.ErrorType = 'Insertion';
                     }
                     lastWords.push(wordNew);
                     bfind = true;
@@ -244,20 +243,20 @@ export class SpeechService {
               if (
                 allWords &&
                 allWords.length > 0 &&
-                allWords[j].PronunciationAssessment.ErrorType !== "Insertion"
+                allWords[j].PronunciationAssessment.ErrorType !== 'Insertion'
               ) {
-                allWords[j].PronunciationAssessment.ErrorType = "Insertion";
+                allWords[j].PronunciationAssessment.ErrorType = 'Insertion';
               }
               lastWords.push(allWords[j]);
             }
           }
         }
-        if (d[0] == "delete" || d[0] == "replace") {
+        if (d[0] == 'delete' || d[0] == 'replace') {
           if (
             d[2] == wholelyricsArryRes.length &&
             !(
-              jo.RecognitionStatus == "Success" ||
-              jo.RecognitionStatus == "Failed"
+              jo.RecognitionStatus == 'Success' ||
+              jo.RecognitionStatus == 'Failed'
             )
           )
             continue;
@@ -265,23 +264,23 @@ export class SpeechService {
             const word = {
               Word: wholelyricsArryRes[i],
               PronunciationAssessment: {
-                ErrorType: "Omission",
+                ErrorType: 'Omission',
               },
             };
             lastWords.push(word);
           }
         }
-        if (d[0] == "equal") {
+        if (d[0] == 'equal') {
           for (let k = d[3], count = 0; k < d[4]; count++) {
-            if (["zh-cn"].includes(language.toLowerCase())) {
+            if (['zh-cn'].includes(language.toLowerCase())) {
               let len = 0;
               let bfind = false;
               _.map(allWords, (item: { Word: string | any[] }, index: any) => {
                 if (len >= k && !bfind) {
                   if (
-                    allWords[index].PronunciationAssessment.ErrorType !== "None"
+                    allWords[index].PronunciationAssessment.ErrorType !== 'None'
                   ) {
-                    allWords[index].PronunciationAssessment.ErrorType = "None";
+                    allWords[index].PronunciationAssessment.ErrorType = 'None';
                   }
                   lastWords.push(allWords[index]);
                   bfind = true;
@@ -298,7 +297,7 @@ export class SpeechService {
       }
 
       let reference_words = [];
-      if (["zh-cn"].includes(language.toLowerCase())) {
+      if (['zh-cn'].includes(language.toLowerCase())) {
         reference_words = allWords;
       } else {
         reference_words = wholelyricsArryRes;
@@ -308,7 +307,7 @@ export class SpeechService {
       _.forEach(
         recognizedWords,
         (word: { PronunciationAssessment: { ErrorType: string } }) => {
-          if (word.PronunciationAssessment.ErrorType == "None") {
+          if (word.PronunciationAssessment.ErrorType == 'None') {
             recognizedWordsRes.push(word);
           }
         }
@@ -328,7 +327,7 @@ export class SpeechService {
         (word: {
           PronunciationAssessment: { ErrorType: string; AccuracyScore: any };
         }) => {
-          if (word && word?.PronunciationAssessment?.ErrorType != "Insertion") {
+          if (word && word?.PronunciationAssessment?.ErrorType != 'Insertion') {
             accuracyScores.push(
               Number(word?.PronunciationAssessment.AccuracyScore ?? 0)
             );
@@ -354,15 +353,15 @@ export class SpeechService {
         return scoreNumber[a] - scoreNumber[b];
       });
       if (
-        jo.RecognitionStatus == "Success" ||
-        jo.RecognitionStatus == "Failed"
+        jo.RecognitionStatus == 'Success' ||
+        jo.RecognitionStatus == 'Failed'
       ) {
         scoreNumber.pronScore = Number(
           (
-            scoreNumber[sortScore["0"]] * 0.4 +
-            scoreNumber[sortScore["1"]] * 0.2 +
-            scoreNumber[sortScore["2"]] * 0.2 +
-            scoreNumber[sortScore["3"]] * 0.2
+            scoreNumber[sortScore['0']] * 0.4 +
+            scoreNumber[sortScore['1']] * 0.2 +
+            scoreNumber[sortScore['2']] * 0.2 +
+            scoreNumber[sortScore['3']] * 0.2
           ).toFixed(0)
         );
       } else {
@@ -375,15 +374,15 @@ export class SpeechService {
       }
 
       console.log(
-        "    Paragraph pronunciation score: ",
+        '    Paragraph pronunciation score: ',
         scoreNumber.pronScore,
-        ", accuracy score: ",
+        ', accuracy score: ',
         scoreNumber.accuracyScore,
-        ", completeness score: ",
+        ', completeness score: ',
         scoreNumber.compScore,
-        ", fluency score: ",
+        ', fluency score: ',
         scoreNumber.fluencyScore,
-        ", prosody score: ",
+        ', prosody score: ',
         scoreNumber.prosodyScore
       );
 
@@ -397,15 +396,15 @@ export class SpeechService {
           ind: number
         ) => {
           console.log(
-            "    ",
+            '    ',
             ind + 1,
-            ": word: ",
+            ': word: ',
             word.Word,
-            "\taccuracy score: ",
+            '\taccuracy score: ',
             word.PronunciationAssessment.AccuracyScore,
-            "\terror type: ",
+            '\terror type: ',
             word.PronunciationAssessment.ErrorType,
-            ";"
+            ';'
           );
         }
       );
@@ -422,9 +421,9 @@ export class SpeechService {
       console.log(e);
       if (e.reason === sdk.CancellationReason.Error) {
         const str =
-          "(cancel) Reason: " +
+          '(cancel) Reason: ' +
           sdk.CancellationReason[e.reason] +
-          ": " +
+          ': ' +
           e.errorDetails;
         console.log(str);
       }
@@ -449,11 +448,11 @@ export class SpeechService {
     cb: (result: any, err: any) => void
   ): Promise<void> {
     const reportResult = await this.reportService.update(reportId, {
-      status: "Processing",
+      status: 'Processing',
     });
 
     if (!reportId || !reportResult.fileId) {
-      cb(undefined, "Report Not Found");
+      cb(undefined, 'Report Not Found');
       return;
     }
 
@@ -470,8 +469,8 @@ export class SpeechService {
       } - ${new Date().toISOString()}`;
       console.error(er);
       this.reportService.update(reportId, {
-        status: "Error",
-        reason: "File not found",
+        status: 'Error',
+        reason: 'File not found',
       });
       cb(undefined, er);
       return;
@@ -481,16 +480,16 @@ export class SpeechService {
 
     if (!examResult) {
       this.reportService.update(reportId, {
-        status: "Error",
-        reason: "Exam not found",
+        status: 'Error',
+        reason: 'Exam not found',
       });
-      cb(undefined, "Exam not found");
+      cb(undefined, 'Exam not found');
       return;
     }
 
-    if (!["Reading", "Speaking"].includes(examResult.type)) {
+    if (!['Reading', 'Speaking'].includes(examResult.type)) {
       this.reportService.update(reportId, {
-        status: "Error",
+        status: 'Error',
         reason: `Exam type: ${examResult.type}`,
       });
       cb(undefined, `Exam type: ${examResult.type}`);
@@ -508,7 +507,7 @@ export class SpeechService {
     const referenceText = examResult.topic; // The text the speaker is supposed to say
     // create pronunciation assessment config, set grading system, granularity and if enable miscue based on your requirement.
     const pronunciationAssessmentConfig = new PronunciationAssessmentConfig(
-      examResult.type === "Reading" ? referenceText : "",
+      examResult.type === 'Reading' ? referenceText : '',
       PronunciationAssessmentGradingSystem.HundredMark,
       PronunciationAssessmentGranularity.Word,
       true
@@ -517,7 +516,7 @@ export class SpeechService {
     // Set up recognizer
     const recognizer = new SpeechRecognizer(speechConfig, audioConfig);
     pronunciationAssessmentConfig.applyTo(recognizer);
-    if (examResult.type === "Speaking") {
+    if (examResult.type === 'Speaking') {
       pronunciationAssessmentConfig.enableProsodyAssessment = true;
       pronunciationAssessmentConfig.enableContentAssessmentWithTopic(
         referenceText
@@ -536,8 +535,8 @@ export class SpeechService {
           const pronunciation_result =
             PronunciationAssessmentResult.fromResult(result);
           this.reportService.update(reportId, {
-            status: "Completed",
-            reason: "",
+            status: 'Completed',
+            reason: '',
             apiResponse: pronunciation_result,
             result: {
               accuracyScore: pronunciation_result.accuracyScore,
@@ -550,10 +549,10 @@ export class SpeechService {
           });
           cb(pronunciation_result, undefined);
 
-          console.log("pronunciation_result", pronunciation_result);
+          console.log('pronunciation_result', pronunciation_result);
         } else {
           this.reportService.update(reportId, {
-            status: "Error",
+            status: 'Error',
             reason: ResultReason[result.reason],
           });
           cb(undefined, `No speech recognized: ${ResultReason[result.reason]}`);
@@ -563,7 +562,7 @@ export class SpeechService {
       },
       (error) => {
         this.reportService.update(reportId, {
-          status: "Error",
+          status: 'Error',
           reason: error,
         });
         cb(undefined, `Error: ${error}`);
@@ -576,12 +575,12 @@ export class SpeechService {
       console.log(e);
       if (e.reason === CancellationReason.Error) {
         const str =
-          "(cancel) Reason: " +
+          '(cancel) Reason: ' +
           CancellationReason[e.reason] +
-          ": " +
+          ': ' +
           e.errorDetails;
         this.reportService.update(reportId, {
-          status: "Error",
+          status: 'Error',
           reason: str,
         });
         cb(undefined, `Error: ${e}`);

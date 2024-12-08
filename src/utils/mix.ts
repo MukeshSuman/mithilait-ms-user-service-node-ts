@@ -8,12 +8,11 @@ export const toTitleCase = (str: string): string => {
     .join(' ');
 };
 
-
-
 export const generateFakeEmail = (): string => {
   const nowDate = new Date().getTime();
-  return `${nowDate}@fake.com`; 1
-}
+  return `${nowDate}@fake.com`;
+  1;
+};
 
 export const generateFakeUsername = (): string => {
   const adjectives = ['awesome', 'cool', 'funny', 'happy', 'sad', 'angry'];
@@ -23,7 +22,7 @@ export const generateFakeUsername = (): string => {
   const randomNumber = Math.floor(Math.random() * 100);
   const fakeUsername = `${adjective}${noun}${getRandomString(3)}${randomNumber}`;
   return fakeUsername;
-}
+};
 
 export const getRandomString = (len = 5) => {
   // const length = Math.floor(Math.random() * 5) + 1;
@@ -32,15 +31,15 @@ export const getRandomString = (len = 5) => {
     randomString += String.fromCharCode(Math.floor(Math.random() * 26) + 65);
   }
   return randomString;
-}
+};
 
 export const toBoolean = (value: any) => {
-  if (typeof value === "string") {
-    return value.toLowerCase() === "true" || value.toLowerCase() === "yes";
+  if (typeof value === 'string') {
+    return value.toLowerCase() === 'true' || value.toLowerCase() === 'yes';
   }
   return Boolean(value); // Handles numbers
-}
+};
 
 export const isObjectEmpty = (obj: object): boolean => {
   return Object.keys(obj).length === 0;
-}
+};

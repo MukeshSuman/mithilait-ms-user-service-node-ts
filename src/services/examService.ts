@@ -1,15 +1,13 @@
-import { IUser, UserRole, User } from "../models/userModel";
-import { IExam, Exam } from "../models/examModel";
-import { ApiError } from "../utils/apiResponse";
-import { PaginationQuery, PaginationResult } from "../utils/pagination";
-import { IExamFilter, IExamService, ISubmitExamData } from "../interfaces";
-import { ApiErrors } from "../constants";
-import mongoose, { Mongoose } from "mongoose";
-import { ReportService } from "./reportService";
-import { IReport, Report } from "../models/reportModel";
-import { convertSortObject } from "../utils/convertSortObject";
-import { isObjectEmpty } from "../utils/mix";
-import { arrayToXLSX } from "../utils/createXLSX";
+import { IUser, UserRole } from '../models/userModel';
+import { IExam, Exam } from '../models/examModel';
+import { ApiError } from '../utils/apiResponse';
+import { PaginationQuery, PaginationResult } from '../utils/pagination';
+import { IExamService, ISubmitExamData } from '../interfaces';
+import { ApiErrors } from '../constants';
+import mongoose from 'mongoose';
+import { ReportService } from './reportService';
+import { convertSortObject } from '../utils/convertSortObject';
+import { isObjectEmpty } from '../utils/mix';
 
 export class ExamService implements IExamService {
   async create(data: Partial<IExam>, currUser?: IUser): Promise<IExam> {
@@ -39,12 +37,14 @@ export class ExamService implements IExamService {
     data: Partial<IExam>,
     currUser?: IUser
   ): Promise<IExam> {
+    console.log('currUser?.role', currUser?.role);
     const exam = await Exam.findByIdAndUpdate(id, data, { new: true });
     if (!exam) throw new ApiError(ApiErrors.NotFound);
     return exam;
   }
 
   async delete(id: string, currUser?: IUser): Promise<IExam> {
+    console.log('currUser?.role', currUser?.role);
     const exam = await Exam.findByIdAndUpdate(
       id,
       { isDeleted: true },
@@ -55,15 +55,15 @@ export class ExamService implements IExamService {
   }
 
   async getById(id: string, currUser?: IUser): Promise<IExam> {
+    console.log('currUser?.role', currUser?.role);
     const exam = await Exam.findById(id);
     if (!exam || exam.isDeleted) throw new ApiError(ApiErrors.NotFound);
-    const data: any = exam.toJSON();
+    const data = exam.toJSON();
     return data;
   }
 
   async getAll(
     options: PaginationQuery,
-    // type: string,
     currUser?: IUser
   ): Promise<PaginationResult<IExam>> {
     if (
@@ -94,8 +94,8 @@ export class ExamService implements IExamService {
 
     if (query) {
       queryObj.$or = [
-        { title: { $regex: query, $options: "i" } },
-        { topic: { $regex: query, $options: "i" } },
+        { title: { $regex: query, $options: 'i' } },
+        { topic: { $regex: query, $options: 'i' } },
       ];
     }
 
@@ -144,14 +144,18 @@ export class ExamService implements IExamService {
         fileId: oldData.fileId,
         apiResponse: oldData.apiResponse || oldData.apiReponse || {},
         result: oldData.result,
-      })
-      const newData = { ...oldData, ...reportData, oldInfo: oldInfo, takenCount: takenCount };
+      });
+      const newData = {
+        ...oldData,
+        ...reportData,
+        oldInfo: oldInfo,
+        takenCount: takenCount,
+      };
       return await reportService.update(checkReportExists[0].id, newData);
     } else {
       const reportResult = await reportService.create(reportData, currUser);
       return reportResult;
     }
-
   }
   async getExamWithStudentsReportAndPagination(
     options: PaginationQuery,
@@ -189,69 +193,69 @@ export class ExamService implements IExamService {
 
     let sort = convertSortObject(options.sort || {});
 
-    if(options.isDownload){
-      skip = 0,
-      pageNumber = 1;
+    if (options.isDownload) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+      (skip = 0), (pageNumber = 1);
       pageSize = Number(options.downloadTotalItems) || 100000000;
     }
 
     if (options.sortField && options.sortOrder) {
       sort = {
         ...sort,
-        ...convertSortObject({ [options.sortField]: options.sortOrder })
-      }
+        ...convertSortObject({ [options.sortField]: options.sortOrder }),
+      };
     }
 
     if (isObjectEmpty(sort)) {
-      sort = convertSortObject({ createdAt: 'desc' })
+      sort = convertSortObject({ createdAt: 'desc' });
     }
 
     const searchMatchArr: Array<any> = [];
-    let searchMatchObj = {}
-    const dateMatch: any = {}
+    let searchMatchObj = {};
+    const dateMatch: any = {};
 
     if (!isObjectEmpty(options.filters || {})) {
       Object.entries(options.filters || {}).forEach(([key, value]) => {
         if (value) {
-          if (key.startsWith("startDate") || key.startsWith("fromDate")) {
-            const tempValue = new Date(value as string)
+          if (key.startsWith('startDate') || key.startsWith('fromDate')) {
+            const tempValue = new Date(value as string);
             if (dateMatch.createdAt) {
               dateMatch.createdAt = {
                 ...dateMatch.createdAt,
-                $gte: tempValue
-              }
+                $gte: tempValue,
+              };
             } else {
               dateMatch.createdAt = {
-                $gte: tempValue
-              }
+                $gte: tempValue,
+              };
             }
-          } else if (key.startsWith("endDate") || key.startsWith("toDate")) {
-            const tempValue = new Date(value as string)
+          } else if (key.startsWith('endDate') || key.startsWith('toDate')) {
+            const tempValue = new Date(value as string);
             if (dateMatch.createdAt) {
               dateMatch.createdAt = {
                 ...dateMatch.createdAt,
-                $lte: tempValue
-              }
+                $lte: tempValue,
+              };
             } else {
               dateMatch.createdAt = {
-                $lte: tempValue
-              }
+                $lte: tempValue,
+              };
             }
           } else {
-            searchMatchArr.push({ [key]: { $regex: value, $options: 'i' } })
+            searchMatchArr.push({ [key]: { $regex: value, $options: 'i' } });
           }
         }
       });
       if (searchMatchArr.length) {
         searchMatchObj = {
-          $or: searchMatchArr
-        }
+          $or: searchMatchArr,
+        };
       }
     }
 
     const examQuery: Partial<{
       title: string;
-      type: "Speaking" | "Reading" | "Writing" | "Listening" | "Typing";
+      type: 'Speaking' | 'Reading' | 'Writing' | 'Listening' | 'Typing';
       topic: string;
       duration: number;
       class: number;
@@ -271,8 +275,8 @@ export class ExamService implements IExamService {
       isDeleted?: boolean;
       schoolId?: mongoose.Types.ObjectId;
     }> = {
-      isDeleted: false
-    }
+      isDeleted: false,
+    };
 
     let schoolId = null;
 
@@ -280,7 +284,7 @@ export class ExamService implements IExamService {
       examQuery._id = new mongoose.Types.ObjectId(options.id);
     }
 
-    if (options.hasOwnProperty("isPractice")) {
+    if (Object.prototype.hasOwnProperty.call(options, 'isPractice')) {
       examQuery.isPractice = options.isPractice;
     }
 
@@ -303,10 +307,10 @@ export class ExamService implements IExamService {
     const finalQuery = {
       ...examQuery,
       ...searchMatchObj,
-      ...dateMatch
-    }
+      ...dateMatch,
+    };
 
-    console.log("finalQuery", finalQuery);
+    console.log('finalQuery', finalQuery);
 
     // Step 1: Get the total number of exams (totalItems)
     const totalItems = await Exam.countDocuments(finalQuery).exec();
@@ -314,8 +318,8 @@ export class ExamService implements IExamService {
     // Calculate the total number of pages (totalPages)
     const totalPages = Math.ceil(totalItems / pageSize);
 
-    console.log("examQuery ====>", examQuery);
-    console.log("page =====>", skip, pageSize);
+    console.log('examQuery ====>', examQuery);
+    console.log('page =====>', skip, pageSize);
 
     // Aggregation pipeline
     const pipeline = [
@@ -325,15 +329,19 @@ export class ExamService implements IExamService {
       },
       {
         $addFields: {
-          filterSection: { $ifNull: ['$section', null] } // Set filterSection to section or null if section is not defined
-        }
+          filterSection: { $ifNull: ['$section', null] }, // Set filterSection to section or null if section is not defined
+        },
       },
       {
         // Step 3: Lookup students based on class, and if section is present, match by section
         $lookup: {
-          from: "users", // The name of the User collection
+          from: 'users', // The name of the User collection
           //let: { classVar: "$class", sectionVar: "$section", examId: "$_id" }, // Use class, section, and examId from the Exam
-          let: { classVar: '$class', filterSection: '$filterSection', examId: '$_id' },
+          let: {
+            classVar: '$class',
+            filterSection: '$filterSection',
+            examId: '$_id',
+          },
           pipeline: [
             {
               $match: {
@@ -341,16 +349,16 @@ export class ExamService implements IExamService {
                 $expr: {
                   $and: [
                     // { $eq: ['$schoolId', schoolId] },
-                    { $eq: ["$class", "$$classVar"] }, // Match students based on class from Exam
+                    { $eq: ['$class', '$$classVar'] }, // Match students based on class from Exam
                     {
                       // Match all sections if filterSection is null; otherwise, match by specific section
                       $cond: {
                         if: { $eq: ['$$filterSection', null] },
                         then: true, // Include all sections
-                        else: { $eq: ['$section', '$$filterSection'] } // Filter by section if specified
-                      }
+                        else: { $eq: ['$section', '$$filterSection'] }, // Filter by section if specified
+                      },
                     },
-                    { $eq: ["$isDeleted", false] }, // Ensure the user is not deleted
+                    { $eq: ['$isDeleted', false] }, // Ensure the user is not deleted
                   ],
                 },
               },
@@ -358,45 +366,45 @@ export class ExamService implements IExamService {
             {
               // Step 4: Lookup the Report for the student and the current exam
               $lookup: {
-                from: "reports", // The name of the Report collection
-                localField: "_id", // The student's ID
-                foreignField: "studentId", // The field in Report to match student
-                let: { examIdVar: "$$examId" }, // Bind the examId from the parent pipeline
+                from: 'reports', // The name of the Report collection
+                localField: '_id', // The student's ID
+                foreignField: 'studentId', // The field in Report to match student
+                let: { examIdVar: '$$examId' }, // Bind the examId from the parent pipeline
                 pipeline: [
                   {
                     $match: {
                       $expr: {
                         $and: [
-                          { $eq: ["$examId", "$$examIdVar"] }, // Match the examId
-                          { $eq: ["$isDeleted", false] }, // Ensure the report is not deleted
+                          { $eq: ['$examId', '$$examIdVar'] }, // Match the examId
+                          { $eq: ['$isDeleted', false] }, // Ensure the report is not deleted
                         ],
                       },
                     },
                   },
                 ],
-                as: "report",
+                as: 'report',
               },
             },
             {
               // Step 5: Unwind the report array to handle one report per student
               $unwind: {
-                path: "$report",
+                path: '$report',
                 preserveNullAndEmptyArrays: true, // Allow students without reports
               },
             },
             {
               // Step 6: Lookup file associated with the report, if any
               $lookup: {
-                from: "files", // The name of the File collection
-                localField: "report.fileId", // Match the fileId in the report
-                foreignField: "_id",
-                as: "file",
+                from: 'files', // The name of the File collection
+                localField: 'report.fileId', // Match the fileId in the report
+                foreignField: '_id',
+                as: 'file',
               },
             },
             {
               // Step 7: Unwind the file array to handle one file per report
               $unwind: {
-                path: "$file",
+                path: '$file',
                 preserveNullAndEmptyArrays: true, // Allow reports without files
               },
             },
@@ -405,19 +413,19 @@ export class ExamService implements IExamService {
               $addFields: {
                 hasTakenExam: {
                   $cond: {
-                    if: { $ifNull: ["$report", null] },
+                    if: { $ifNull: ['$report', null] },
                     then: true,
                     else: false,
                   },
                 }, // Check if the student has taken the exam
                 // hasTakenExam: { $cond: { if: { $gt: [{ $size: '$report' }, 0] }, then: true, else: false } }, // Check if the student has taken the exam
-                name: { $concat: ["$firstName", " ", "$lastName"] }, // Concatenate firstName and lastName to create the name
+                name: { $concat: ['$firstName', ' ', '$lastName'] }, // Concatenate firstName and lastName to create the name
               },
             },
             {
               // Step 9: Rename _id to id for students
               $addFields: {
-                id: "$_id",
+                id: '$_id',
               },
             },
             //   {
@@ -428,28 +436,28 @@ export class ExamService implements IExamService {
             //     }
             //   }
           ],
-          as: "students", // Embed the students array inside each exam
+          as: 'students', // Embed the students array inside each exam
         },
       },
       {
         // Step 10: Calculate total students, students who took the exam, and students who did not
         $addFields: {
-          totalStudents: { $size: "$students" }, // Total number of students for the exam
+          totalStudents: { $size: '$students' }, // Total number of students for the exam
           totalStudentsTakeExam: {
             $size: {
               $filter: {
-                input: "$students", // Filter the students who have taken the exam
-                as: "student",
-                cond: { $eq: ["$$student.hasTakenExam", true] }, // Only count those who have taken the exam
+                input: '$students', // Filter the students who have taken the exam
+                as: 'student',
+                cond: { $eq: ['$$student.hasTakenExam', true] }, // Only count those who have taken the exam
               },
             },
           },
           totalStudentsNotTakeExam: {
             $size: {
               $filter: {
-                input: "$students", // Filter the students who have not taken the exam
-                as: "student",
-                cond: { $eq: ["$$student.hasTakenExam", false] }, // Only count those who have not taken the exam
+                input: '$students', // Filter the students who have not taken the exam
+                as: 'student',
+                cond: { $eq: ['$$student.hasTakenExam', false] }, // Only count those who have not taken the exam
               },
             },
           },
@@ -461,7 +469,7 @@ export class ExamService implements IExamService {
       {
         // Step 11: Rename _id to id for the exam
         $addFields: {
-          id: "$_id",
+          id: '$_id',
         },
       },
       // {

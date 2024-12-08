@@ -7,7 +7,7 @@ export const ROOT_DIR = path.resolve(__dirname, '..', '..');
 
 // Function to get absolute path from a path relative to the root directory
 export function getPath(...relativePath: string[]): string {
-    return path.join(ROOT_DIR, ...relativePath);
+  return path.join(ROOT_DIR, ...relativePath);
 }
 
 // Common paths

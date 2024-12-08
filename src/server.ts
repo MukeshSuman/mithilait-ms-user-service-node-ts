@@ -227,9 +227,9 @@ import * as path from 'path';
 // // });
 
 // import express from "express";
-import { createServer } from "http";
-import { Server, Socket } from "socket.io";
-import * as sdk from "microsoft-cognitiveservices-speech-sdk";
+import { createServer } from 'http';
+import { Server, Socket } from 'socket.io';
+import * as sdk from 'microsoft-cognitiveservices-speech-sdk';
 
 // Azure Speech SDK configuration
 // const speechKey = process.env.AZURE_SPEECH_KEY || "YOUR_AZURE_SPEECH_KEY";
@@ -295,14 +295,13 @@ import * as sdk from "microsoft-cognitiveservices-speech-sdk";
 //     console.log(`Server running on port ${PORT}`);
 // });
 
-
 // const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
-    cors: {
-        origin: '*', // Allow requests from all origins (adjust for production)
-        methods: ['GET', 'POST'],
-    },
+  cors: {
+    origin: '*', // Allow requests from all origins (adjust for production)
+    methods: ['GET', 'POST'],
+  },
 });
 
 // Azure Speech SDK credentials
@@ -310,8 +309,8 @@ const speechKey = process.env.AZURE_SPEECH_KEY || 'YOUR_AZURE_SPEECH_KEY';
 const speechRegion = process.env.AZURE_SPEECH_REGION || 'YOUR_AZURE_REGION';
 
 interface RecognizerInfo {
-    recognizer: sdk.SpeechRecognizer;
-    pushStream: sdk.PushAudioInputStream;
+  recognizer: sdk.SpeechRecognizer;
+  pushStream: sdk.PushAudioInputStream;
 }
 
 const recognizerMap = new Map<string, RecognizerInfo>();
@@ -323,132 +322,142 @@ const clientStreams = new Map<string, fs.WriteStream>();
 // }
 
 io.on('connection', (socket: Socket) => {
-    console.log('Client connected:', socket.id);
+  console.log('Client connected:', socket.id);
 
-    socket.on('startPronunciationAssessment', (data) => {
-        const { expectedText } = data;
-        startPronunciationAssessment(socket, expectedText);
-    });
+  socket.on('startPronunciationAssessment', (data) => {
+    const { expectedText } = data;
+    startPronunciationAssessment(socket, expectedText);
+  });
 
-    socket.on('audioChunk', (audioData: ArrayBuffer) => {
-        if (recognizerMap.has(socket.id)) {
+  socket.on('audioChunk', (audioData: ArrayBuffer) => {
+    if (recognizerMap.has(socket.id)) {
+      const { pushStream } = recognizerMap.get(socket.id)!;
+      const buffer = Buffer.from(new Uint8Array(audioData));
+      pushStream.write(buffer);
+      if (!clientStreams.has(socket.id)) {
+        const filePath = path.join(
+          __dirname,
+          '../upload',
+          `audio_${socket.id}.wav`
+        );
+        const writableStream = fs.createWriteStream(filePath);
+        clientStreams.set(socket.id, writableStream);
+      }
+      const writableStream = clientStreams.get(socket.id);
+      if (writableStream) {
+        writableStream.write(Buffer.from(audioData)); // Write audio chunk to file
+      }
+    }
+  });
 
-            const { pushStream } = recognizerMap.get(socket.id)!;
-            const buffer = Buffer.from(new Uint8Array(audioData));
-            pushStream.write(buffer);
-            if (!clientStreams.has(socket.id)) {
-                const filePath = path.join(__dirname, '../upload', `audio_${socket.id}.wav`);
-                const writableStream = fs.createWriteStream(filePath);
-                clientStreams.set(socket.id, writableStream);
-            }
-            const writableStream = clientStreams.get(socket.id);
-            if (writableStream) {
-                writableStream.write(Buffer.from(audioData));  // Write audio chunk to file
-            }
-        }
-    });
+  socket.on('stopPronunciationAssessment', () => {
+    stopPronunciationAssessment(socket);
+    closeStreamsSafe(socket);
+  });
 
-    socket.on('stopPronunciationAssessment', () => {
-        stopPronunciationAssessment(socket);
-        closeStreamsSafe(socket);
-    });
-
-    socket.on('disconnect', () => {
-        console.log('Client disconnected:', socket.id);
-        stopPronunciationAssessment(socket);
-        closeStreamsSafe(socket);
-    });
+  socket.on('disconnect', () => {
+    console.log('Client disconnected:', socket.id);
+    stopPronunciationAssessment(socket);
+    closeStreamsSafe(socket);
+  });
 });
 
 const closeStreamsSafe = (socket: Socket) => {
-    const writableStream = clientStreams.get(socket.id);
-    if (writableStream) {
-        writableStream.end();  // Close the stream when audio stops
-        clientStreams.delete(socket.id);  // Remove the stream from the map
-    }
+  const writableStream = clientStreams.get(socket.id);
+  if (writableStream) {
+    writableStream.end(); // Close the stream when audio stops
+    clientStreams.delete(socket.id); // Remove the stream from the map
+  }
 };
 
 function startPronunciationAssessment(socket: Socket, expectedText: string) {
-    const speechConfig = sdk.SpeechConfig.fromSubscription(speechKey, speechRegion);
-    speechConfig.speechRecognitionLanguage = 'en-US'; // Set as needed
+  const speechConfig = sdk.SpeechConfig.fromSubscription(
+    speechKey,
+    speechRegion
+  );
+  speechConfig.speechRecognitionLanguage = 'en-US'; // Set as needed
 
-    const pushStream = sdk.AudioInputStream.createPushStream();
-    const audioConfig = sdk.AudioConfig.fromStreamInput(pushStream);
+  const pushStream = sdk.AudioInputStream.createPushStream();
+  const audioConfig = sdk.AudioConfig.fromStreamInput(pushStream);
 
-    const recognizer = new sdk.SpeechRecognizer(speechConfig, audioConfig);
+  const recognizer = new sdk.SpeechRecognizer(speechConfig, audioConfig);
 
-    const pronunciationConfig = new sdk.PronunciationAssessmentConfig(
-        expectedText,
-        sdk.PronunciationAssessmentGradingSystem.HundredMark,
-        sdk.PronunciationAssessmentGranularity.Phoneme,
-        true
-    );
-    pronunciationConfig.applyTo(recognizer);
+  const pronunciationConfig = new sdk.PronunciationAssessmentConfig(
+    expectedText,
+    sdk.PronunciationAssessmentGradingSystem.HundredMark,
+    sdk.PronunciationAssessmentGranularity.Phoneme,
+    true
+  );
+  pronunciationConfig.applyTo(recognizer);
 
-    // Real-time recognition event listener
-    recognizer.recognizing = (s, e) => {
-        if (e.result.reason === sdk.ResultReason.RecognizingSpeech) {
-            console.log(`Recognizing: ${e.result.text}`);
-            socket.emit('recognizingText', e.result.text); // Emit recognized text in real-time
-        } else if (e.result.reason === sdk.ResultReason.NoMatch) {
-            console.log('No speech recognized.');
-        }
-    };
+  // Real-time recognition event listener
+  recognizer.recognizing = (s, e) => {
+    if (e.result.reason === sdk.ResultReason.RecognizingSpeech) {
+      console.log(`Recognizing: ${e.result.text}`);
+      socket.emit('recognizingText', e.result.text); // Emit recognized text in real-time
+    } else if (e.result.reason === sdk.ResultReason.NoMatch) {
+      console.log('No speech recognized.');
+    }
+  };
 
-    recognizer.recognized = (s, e) => {
-        if (e.result.reason === sdk.ResultReason.RecognizedSpeech) {
-            const jsonResult = e.result.properties.getProperty(sdk.PropertyId.SpeechServiceResponse_JsonResult);
-            const pronunciationResult2 = sdk.PronunciationAssessmentResult.fromResult(e.result);
-            console.log(`(recognizing) Pronunciation score: ${pronunciationResult2}`);
-            const pronunciationResultScore = {
-                text: e.result.text,
-                pronunciationAssessment: {
-                    AccuracyScore: pronunciationResult2.accuracyScore,
-                    FluencyScore: pronunciationResult2.fluencyScore,
-                    CompletenessScore: pronunciationResult2.completenessScore,
-                    PronunciationScore: pronunciationResult2.pronunciationScore
-                },
-                // pronunciationScore: pronunciationResult2.pronunciationScore,
-                // accuracyScore: pronunciationResult2.accuracyScore,
-                // fluencyScore: pronunciationResult2.fluencyScore,
-                // completenessScore: pronunciationResult2.completenessScore,
-            };
+  recognizer.recognized = (s, e) => {
+    if (e.result.reason === sdk.ResultReason.RecognizedSpeech) {
+      const jsonResult = e.result.properties.getProperty(
+        sdk.PropertyId.SpeechServiceResponse_JsonResult
+      );
+      const pronunciationResult2 = sdk.PronunciationAssessmentResult.fromResult(
+        e.result
+      );
+      console.log(`(recognizing) Pronunciation score: ${pronunciationResult2}`);
+      const pronunciationResultScore = {
+        text: e.result.text,
+        pronunciationAssessment: {
+          AccuracyScore: pronunciationResult2.accuracyScore,
+          FluencyScore: pronunciationResult2.fluencyScore,
+          CompletenessScore: pronunciationResult2.completenessScore,
+          PronunciationScore: pronunciationResult2.pronunciationScore,
+        },
+        // pronunciationScore: pronunciationResult2.pronunciationScore,
+        // accuracyScore: pronunciationResult2.accuracyScore,
+        // fluencyScore: pronunciationResult2.fluencyScore,
+        // completenessScore: pronunciationResult2.completenessScore,
+      };
 
-            const pronunciationResult = JSON.parse(jsonResult);
-            socket.emit('pronunciationResult', pronunciationResultScore);
-        } else if (e.result.reason === sdk.ResultReason.NoMatch) {
-            console.log('No speech recognized.');
-        }
-    };
+      const pronunciationResult = JSON.parse(jsonResult);
+      socket.emit('pronunciationResult', pronunciationResultScore);
+    } else if (e.result.reason === sdk.ResultReason.NoMatch) {
+      console.log('No speech recognized.');
+    }
+  };
 
-    recognizer.canceled = (s, e) => {
-        console.error(`Recognition canceled: ${e.errorDetails}`);
-        stopPronunciationAssessment(socket);
-    };
+  recognizer.canceled = (s, e) => {
+    console.error(`Recognition canceled: ${e.errorDetails}`);
+    stopPronunciationAssessment(socket);
+  };
 
-    recognizer.sessionStopped = () => {
-        console.log('Session stopped.');
-        stopPronunciationAssessment(socket);
-    };
+  recognizer.sessionStopped = () => {
+    console.log('Session stopped.');
+    stopPronunciationAssessment(socket);
+  };
 
-    recognizer.startContinuousRecognitionAsync();
+  recognizer.startContinuousRecognitionAsync();
 
-    recognizerMap.set(socket.id, { recognizer, pushStream });
+  recognizerMap.set(socket.id, { recognizer, pushStream });
 }
 
 function stopPronunciationAssessment(socket: Socket) {
-    const recognizerInfo = recognizerMap.get(socket.id);
-    if (recognizerInfo) {
-        recognizerInfo.pushStream.close();
-        recognizerInfo.recognizer.stopContinuousRecognitionAsync(
-            () => recognizerInfo.recognizer.close(),
-            (err) => console.error('Error stopping recognition:', err)
-        );
-        recognizerMap.delete(socket.id);
-    }
+  const recognizerInfo = recognizerMap.get(socket.id);
+  if (recognizerInfo) {
+    recognizerInfo.pushStream.close();
+    recognizerInfo.recognizer.stopContinuousRecognitionAsync(
+      () => recognizerInfo.recognizer.close(),
+      (err) => console.error('Error stopping recognition:', err)
+    );
+    recognizerMap.delete(socket.id);
+  }
 }
 
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {
-    console.log(`Server is listening on port ${PORT}`);
+  console.log(`Server is listening on port ${PORT}`);
 });

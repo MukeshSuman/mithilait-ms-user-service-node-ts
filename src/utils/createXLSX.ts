@@ -39,15 +39,14 @@
 import * as XLSX from 'xlsx';
 import { WorkBook, WorkSheet } from 'xlsx';
 import { writeFile } from 'fs/promises';
-import * as fs from "fs";
-import path from "path";
-
+import * as fs from 'fs';
+import path from 'path';
 
 interface ExcelOptions {
   sheetName?: string;
   fileName?: string;
   headers?: string[];
-  subPath?: string
+  subPath?: string;
 }
 
 export async function arrayToXLSX<T extends Record<string, any>>(
@@ -59,15 +58,19 @@ export async function arrayToXLSX<T extends Record<string, any>>(
       sheetName = 'Sheet1',
       fileName = `export_${Date.now()}.xlsx`,
       headers,
-      subPath= "/exam/reports"
+      subPath = '/exam/reports',
     } = options;
-    const downloadExamReportPath = path.join(__dirname, "../../downloads",  subPath);;
+    const downloadExamReportPath = path.join(
+      __dirname,
+      '../../downloads',
+      subPath
+    );
 
     // const uploadDir =   // Create the full path
-  
+
     // Check if directory exists, if not, create it
     if (!fs.existsSync(downloadExamReportPath)) {
-      fs.mkdirSync(downloadExamReportPath, { recursive: true });  // Create the directory recursively
+      fs.mkdirSync(downloadExamReportPath, { recursive: true }); // Create the directory recursively
     }
 
     // // Check if directory exists, if not, create it
@@ -80,7 +83,6 @@ export async function arrayToXLSX<T extends Record<string, any>>(
     //   fs.mkdirSync(path.join(__dirname, downloadExamReportPath));
     // }
     // Set default options
-
 
     // Create workbook
     const workbook: WorkBook = XLSX.utils.book_new();
@@ -96,7 +98,7 @@ export async function arrayToXLSX<T extends Record<string, any>>(
     }
 
     // Convert data to array format
-    const rows = data.map(item => Object.values(item));
+    const rows = data.map((item) => Object.values(item));
     worksheetData = worksheetData.concat(rows);
 
     // Create worksheet

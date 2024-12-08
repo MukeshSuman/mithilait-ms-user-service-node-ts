@@ -1,4 +1,3 @@
-
 export const Speech = () => {
-    return false;
+  return false;
 };

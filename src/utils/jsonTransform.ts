@@ -1,11 +1,11 @@
 type Primitive = string | number | boolean | null | undefined;
 
 type NestedObject = {
-    [key: string]: Primitive | NestedObject | Array<any>;
+  [key: string]: Primitive | NestedObject | Array<any>;
 };
 
 type FlattenedObject = {
-    [key: string]: Primitive | Array<Primitive>;
+  [key: string]: Primitive | Array<Primitive>;
 };
 
 /**
@@ -18,155 +18,162 @@ type FlattenedObject = {
  * @returns A flattened object with configured key handling
  */
 export const flattenObject = (
-    obj: NestedObject,
-    ignoreKeys: string[] = [],
-    prefix: string = '',
-    seenKeys: Set<string> = new Set()
+  obj: NestedObject,
+  ignoreKeys: string[] = [],
+  prefix: string = '',
+  seenKeys: Set<string> = new Set()
 ): FlattenedObject => {
-    return Object.keys(obj).reduce((acc: FlattenedObject, key: string) => {
-        const value = obj[key];
-        const newKey = prefix ? `${prefix}_${key}` : key;
-        const shouldIgnoreAtRoot = ignoreKeys.includes(key);
-        let skipKey = false;
-        if(shouldIgnoreAtRoot){
-            skipKey = true
-            // console.log('shouldIgnoreAtRoot', key, shouldIgnoreAtRoot)
-        } else if (value === null || value === undefined) {
-            if (!shouldIgnoreAtRoot && !prefix && !seenKeys.has(key)) {
-                acc[key] = value;
-                seenKeys.add(key);
-            } else if (prefix) {
-                acc[newKey] = value;
-            }
+  return Object.keys(obj).reduce((acc: FlattenedObject, key: string) => {
+    const value = obj[key];
+    const newKey = prefix ? `${prefix}_${key}` : key;
+    const shouldIgnoreAtRoot = ignoreKeys.includes(key);
+    let skipKey = false;
+    if (shouldIgnoreAtRoot) {
+      skipKey = true;
+      // console.log('shouldIgnoreAtRoot', key, shouldIgnoreAtRoot)
+    } else if (value === null || value === undefined) {
+      if (!shouldIgnoreAtRoot && !prefix && !seenKeys.has(key)) {
+        acc[key] = value;
+        seenKeys.add(key);
+      } else if (prefix) {
+        acc[newKey] = value;
+      }
+    } else if (Array.isArray(value)) {
+      if (value.every((item) => typeof item !== 'object' || item === null)) {
+        if (!shouldIgnoreAtRoot && !prefix && !seenKeys.has(key)) {
+          acc[key] = value;
+          seenKeys.add(key);
+        } else if (prefix) {
+          acc[newKey] = value;
         }
-        else if (Array.isArray(value)) {
-            if (value.every(item => typeof item !== 'object' || item === null)) {
-                if (!shouldIgnoreAtRoot && !prefix && !seenKeys.has(key)) {
-                    acc[key] = value;
-                    seenKeys.add(key);
-                } else if (prefix) {
-                    acc[newKey] = value;
-                }
-            } else {
-                value.forEach((item, index) => {
-                    if (typeof item === 'object' && item !== null) {
-                        const arrayFlattened = flattenObject(
-                            item,
-                            ignoreKeys,
-                            `${prefix ? prefix + '_' : ''}${key}[${index}]`,
-                            seenKeys
-                        );
-                        Object.assign(acc, arrayFlattened);
-                    } else {
-                        const arrayKey = `${prefix ? prefix + '_' : ''}${key}[${index}]`;
-                        acc[arrayKey] = item;
-                    }
-                });
-            }
-        }
-        else if (typeof value === 'object') {
-            const nestedFlattened = flattenObject(value, ignoreKeys, newKey, seenKeys);
-            Object.assign(acc, nestedFlattened);
-        }
-        else {
-            if (!shouldIgnoreAtRoot && !prefix && !seenKeys.has(key)) {
-                acc[key] = value;
-                seenKeys.add(key);
-            } else if (prefix) {
-                acc[newKey] = value;
-            }
-        }
+      } else {
+        value.forEach((item, index) => {
+          if (typeof item === 'object' && item !== null) {
+            const arrayFlattened = flattenObject(
+              item,
+              ignoreKeys,
+              `${prefix ? prefix + '_' : ''}${key}[${index}]`,
+              seenKeys
+            );
+            Object.assign(acc, arrayFlattened);
+          } else {
+            const arrayKey = `${prefix ? prefix + '_' : ''}${key}[${index}]`;
+            acc[arrayKey] = item;
+          }
+        });
+      }
+    } else if (typeof value === 'object') {
+      const nestedFlattened = flattenObject(
+        value,
+        ignoreKeys,
+        newKey,
+        seenKeys
+      );
+      Object.assign(acc, nestedFlattened);
+    } else {
+      if (!shouldIgnoreAtRoot && !prefix && !seenKeys.has(key)) {
+        acc[key] = value;
+        seenKeys.add(key);
+      } else if (prefix) {
+        acc[newKey] = value;
+      }
+    }
 
-        return acc;
-    }, {});
-}
+    return acc;
+  }, {});
+};
 
 type TransformConfig = {
-    selectKeys: string[]; // Keys to select directly
-    renames?: Record<string, string>; // Map of old key names to new key names
-    newKeys?: Record<string, string>; // Map of new key names to comma-separated keys to join
+  selectKeys: string[]; // Keys to select directly
+  renames?: Record<string, string>; // Map of old key names to new key names
+  newKeys?: Record<string, string>; // Map of new key names to comma-separated keys to join
 };
 
 // Input object type (example based on the given data structure)
 type OriginalObject = {
-    [key: string]: Primitive | NestedObject | Array<any>;
-    // [key: string]: any; // Original object allows dynamic properties
+  [key: string]: Primitive | NestedObject | Array<any>;
+  // [key: string]: any; // Original object allows dynamic properties
 };
 
 // Arrow function implementation
 export const transformObject = (
-    original: OriginalObject,
-    { selectKeys, renames, newKeys }: TransformConfig
+  original: OriginalObject,
+  { selectKeys, renames, newKeys }: TransformConfig
 ): Record<string, any> => {
-    const result: Record<string, any> = {};
+  const result: Record<string, any> = {};
 
-    // Add selected keys directly
-    selectKeys.forEach(key => {
-        if (original[key] !== undefined) {
-            result[key] = original[key];
-        }
+  // Add selected keys directly
+  selectKeys.forEach((key) => {
+    if (original[key] !== undefined) {
+      result[key] = original[key];
+    }
+  });
+
+  // Add and rename keys based on renames object
+  if (renames) {
+    Object.entries(renames).forEach(([oldKey, newKey]) => {
+      if (original[oldKey] !== undefined) {
+        result[newKey] = original[oldKey];
+      }
     });
+  }
 
-    // Add and rename keys based on renames object
-    if(renames){
-        Object.entries(renames).forEach(([oldKey, newKey]) => {
-            if (original[oldKey] !== undefined) {
-                result[newKey] = original[oldKey];
-            }
-        });
-    }
-
-    // Add new joined keys
-    if(newKeys){
-        Object.entries(newKeys).forEach(([newKey, keysToJoin]) => {
-            const values = keysToJoin.split(',').map(key => original[key]).filter(Boolean);
-            if (values.length > 0) {
-                result[newKey] = values.join(' '); // Join with a space or customize as needed
-            }
-        });
-    }
-    return result;
+  // Add new joined keys
+  if (newKeys) {
+    Object.entries(newKeys).forEach(([newKey, keysToJoin]) => {
+      const values = keysToJoin
+        .split(',')
+        .map((key) => original[key])
+        .filter(Boolean);
+      if (values.length > 0) {
+        result[newKey] = values.join(' '); // Join with a space or customize as needed
+      }
+    });
+  }
+  return result;
 };
 
 type AnyObject = {
-    [key: string]: any; // Object with dynamic properties
-  };
-  
- export const reorderObjectKeys = (obj: AnyObject, keyOrder: string[]): AnyObject => {
-    const reorderedObject: AnyObject = {};
-  
-    // Add keys in the specified order
-    keyOrder.forEach(key => {
-      if (key in obj) {
-        reorderedObject[key] = obj[key];
-      }
-    });
-  
-    // Add any remaining keys not in the keyOrder
-    Object.keys(obj).forEach(key => {
-      if (!(key in reorderedObject)) {
-        reorderedObject[key] = obj[key];
-      }
-    });
-  
-    return reorderedObject;
-  };
-  
-  // Example usage
+  [key: string]: any; // Object with dynamic properties
+};
+
+export const reorderObjectKeys = (
+  obj: AnyObject,
+  keyOrder: string[]
+): AnyObject => {
+  const reorderedObject: AnyObject = {};
+
+  // Add keys in the specified order
+  keyOrder.forEach((key) => {
+    if (key in obj) {
+      reorderedObject[key] = obj[key];
+    }
+  });
+
+  // Add any remaining keys not in the keyOrder
+  Object.keys(obj).forEach((key) => {
+    if (!(key in reorderedObject)) {
+      reorderedObject[key] = obj[key];
+    }
+  });
+
+  return reorderedObject;
+};
+
+// Example usage
 //   const originalObject = {
 //     name: "John Doe",
 //     email: "john.doe@example.com",
 //     age: 25,
 //     role: "Admin",
 //   };
-  
+
 //   const keyOrder = ["role", "name", "email"]; // Desired key order
-  
+
 //   const reorderedObject = reorderKeys(originalObject, keyOrder);
-  
+
 //   console.log("Original Object:", originalObject);
 //   console.log("Reordered Object:", reorderedObject);
-  
 
 // Example configuration and usage
 // const originalObject: OriginalObject = {
@@ -190,8 +197,6 @@ type AnyObject = {
 // const newObject = transformObject(originalObject, config);
 
 // console.log(newObject);
-
-
 
 // const testObject = {
 //   "_id": "670ce060bf2461ef2ef2a2d1",
@@ -344,4 +349,3 @@ type AnyObject = {
 // apiReponse
 // const flattened = flattenObject(testObject, ignoreKeys);
 // console.log(flattened);
-

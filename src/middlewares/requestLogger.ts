@@ -2,39 +2,43 @@ import { Request, Response, NextFunction } from 'express';
 import { logger } from '../config/logger';
 import chalk from 'chalk'; // For colorful console output
 
-export const requestLogger = (req: Request, res: Response, next: NextFunction) => {
-    const start = Date.now();
+export const requestLogger = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const start = Date.now();
 
-    res.on('finish', () => {
-        console.log('---- START requestLogger -----')
-        const duration = Date.now() - start;
-        const { method, originalUrl } = req;
-        const { statusCode } = res;
+  res.on('finish', () => {
+    console.log('---- START requestLogger -----');
+    const duration = Date.now() - start;
+    const { method, originalUrl } = req;
+    const { statusCode } = res;
 
-        let statusColor = chalk.green;
-        if (statusCode >= 400) statusColor = chalk.yellow;
-        if (statusCode >= 500) statusColor = chalk.red;
+    let statusColor = chalk.green;
+    if (statusCode >= 400) statusColor = chalk.yellow;
+    if (statusCode >= 500) statusColor = chalk.red;
 
-        console.log(
-            `${chalk.blue(method)} ${chalk.cyan(originalUrl)} ${statusColor(statusCode)} ${chalk.gray(`${duration}ms`)}`
-        );
+    console.log(
+      `${chalk.blue(method)} ${chalk.cyan(originalUrl)} ${statusColor(statusCode)} ${chalk.gray(`${duration}ms`)}`
+    );
 
-        // Log headers
-        // console.log(chalk.magenta('Headers:'), req.headers);
+    // Log headers
+    // console.log(chalk.magenta('Headers:'), req.headers);
 
-        // Log query parameters
-        if (Object.keys(req.query).length > 0) {
-            console.log(chalk.magenta('Query:'), req.query);
-        }
+    // Log query parameters
+    if (Object.keys(req.query).length > 0) {
+      console.log(chalk.magenta('Query:'), req.query);
+    }
 
-        // Log body for POST, PUT, PATCH requests
-        if (['POST', 'PUT', 'PATCH'].includes(method) && req.body) {
-            console.log(chalk.magenta('Body:'), req.body);
-        }
+    // Log body for POST, PUT, PATCH requests
+    if (['POST', 'PUT', 'PATCH'].includes(method) && req.body) {
+      console.log(chalk.magenta('Body:'), req.body);
+    }
 
-        console.log('---- END requestLogger -----') // console.log('---');  // Separator for readability
-    });
-    logger.info(`${req.method} ${req.path}`);
-    // logger.info('Headers:', req.headers);
-    next();
+    console.log('---- END requestLogger -----'); // console.log('---');  // Separator for readability
+  });
+  logger.info(`${req.method} ${req.path}`);
+  // logger.info('Headers:', req.headers);
+  next();
 };
