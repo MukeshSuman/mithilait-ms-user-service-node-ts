@@ -27,9 +27,7 @@ export const flattenObject = (
     const value = obj[key];
     const newKey = prefix ? `${prefix}_${key}` : key;
     const shouldIgnoreAtRoot = ignoreKeys.includes(key);
-    let skipKey = false;
     if (shouldIgnoreAtRoot) {
-      skipKey = true;
       // console.log('shouldIgnoreAtRoot', key, shouldIgnoreAtRoot)
     } else if (value === null || value === undefined) {
       if (!shouldIgnoreAtRoot && !prefix && !seenKeys.has(key)) {

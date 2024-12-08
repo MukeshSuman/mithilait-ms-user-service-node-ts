@@ -1,5 +1,3 @@
-import { randomBytes } from 'crypto';
-
 export const toTitleCase = (str: string): string => {
   return str
     .toLowerCase()
@@ -11,7 +9,6 @@ export const toTitleCase = (str: string): string => {
 export const generateFakeEmail = (): string => {
   const nowDate = new Date().getTime();
   return `${nowDate}@fake.com`;
-  1;
 };
 
 export const generateFakeUsername = (): string => {

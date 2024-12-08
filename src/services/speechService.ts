@@ -1,11 +1,11 @@
 import * as sdk from 'microsoft-cognitiveservices-speech-sdk';
 import * as fs from 'fs';
-// @ts-ignore ts
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-expect-error ts
 import * as Segment from 'segment';
 import * as difflib from 'difflib';
 import _ from 'lodash';
-// import * as path from 'path';
-import { getPath, TEMP_DIR } from '../config';
+import { getPath } from '../config';
 import {
   SpeechConfig,
   AudioConfig,
@@ -41,7 +41,7 @@ export class SpeechService {
     this.subscriptionKey = process.env.AZURE_SPEECH_KEY || 'fakekey';
     this.serviceRegion = process.env.AZURE_SPEECH_REGION || 'fakeregion';
   }
-  async transcribeAudioFile(filePath: string): Promise<string> {
+  async transcribeAudioFile(): Promise<string> {
     return '';
   }
 
@@ -431,10 +431,10 @@ export class SpeechService {
     };
 
     // Signals that a new session has started with the speech service
-    reco.sessionStarted = function (s, e) {};
+    reco.sessionStarted = function () {};
 
     // Signals the end of a session with the speech service.
-    reco.sessionStopped = function (s, e) {
+    reco.sessionStopped = function () {
       reco.stopContinuousRecognitionAsync();
       reco.close();
       calculateOverallPronunciationScore();

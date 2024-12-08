@@ -48,6 +48,7 @@ export class UserService implements IUserService {
     currUser?: IUser
   ): Promise<IUser> {
     delete userData.role;
+    console.log("currUser role", currUser?.role);
     console.log('userData==========================', userData);
     console.log('userId =========================', userId);
     const user = await User.findByIdAndUpdate(userId, userData, { new: true });
@@ -56,6 +57,7 @@ export class UserService implements IUserService {
   }
 
   async delete(userId: string, currUser?: IUser): Promise<IUser> {
+    console.log("currUser role", currUser?.role);
     const user = await User.findByIdAndUpdate(
       userId,
       { isDeleted: true },
@@ -66,6 +68,7 @@ export class UserService implements IUserService {
   }
 
   async getById(userId: string, currUser?: IUser): Promise<IUser> {
+    console.log("currUser role", currUser?.role);
     const user = await User.findById(userId);
     if (!user || user.isDeleted) throw new ApiError(ApiErrors.NotFound);
     return user;
@@ -128,7 +131,7 @@ export class UserService implements IUserService {
     }
 
     const searchMatchArr: Array<any> = [];
-    let searchMatchObj = {};
+    // let searchMatchObj = {};
     const dateMatch: any = {};
     const filterObj: any = {};
 
@@ -165,11 +168,11 @@ export class UserService implements IUserService {
           }
         }
       });
-      if (searchMatchArr.length) {
-        searchMatchObj = {
-          $or: searchMatchArr,
-        };
-      }
+      // if (searchMatchArr.length) {
+      //   searchMatchObj = {
+      //     $or: searchMatchArr,
+      //   };
+      // }
     }
 
     const finalQuery = {
@@ -275,7 +278,7 @@ export class UserService implements IUserService {
     };
   }
 
-  async logout(userId: string): Promise<void> {
+  async logout(): Promise<void> {
     // In a real-world scenario, you might want to invalidate the token
     // This could involve storing invalid tokens in a blacklist (e.g., Redis)
     // For simplicity, we'll just return a success message

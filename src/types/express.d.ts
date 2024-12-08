@@ -1,7 +1,3 @@
-// src/types/express.d.ts
-
-import express from 'express';
-
 // Define your User type (or import it from your models)
 interface User {
   id: string;

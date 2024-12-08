@@ -1,4 +1,4 @@
-import { IUser, UserRole, User } from '../models/userModel';
+import { IUser, UserRole } from '../models/userModel';
 import { IReport, Report } from '../models/reportModel';
 import { ApiError } from '../utils/apiResponse';
 import { PaginationQuery, PaginationResult } from '../utils/pagination';
@@ -48,12 +48,14 @@ export class ReportService implements IReportService {
     data: Partial<IReport>,
     currUser?: IUser
   ): Promise<IReport> {
+    console.log('currUser role', currUser?.role)
     const result = await Report.findByIdAndUpdate(id, data, { new: true });
     if (!result) throw new ApiError(ApiErrors.NotFound);
     return result;
   }
 
   async delete(id: string, currUser?: IUser): Promise<IReport> {
+    console.log('currUser role', currUser?.role)
     const result = await Report.findByIdAndUpdate(
       id,
       { isDeleted: true },
@@ -64,6 +66,7 @@ export class ReportService implements IReportService {
   }
 
   async getById(id: string, currUser?: IUser): Promise<IReport> {
+    console.log('currUser role', currUser?.role)
     const result = await Report.findById(id);
     if (!result || result.isDeleted) throw new ApiError(ApiErrors.NotFound);
     const data: any = result.toJSON();
@@ -71,6 +74,7 @@ export class ReportService implements IReportService {
   }
 
   async get(data: Record<string, any>, currUser?: IUser): Promise<IReport[]> {
+    console.log('currUser role', currUser?.role)
     const result = await Report.find(data).lean();
     if (!result) throw new ApiError(ApiErrors.NotFound);
     // const finalData:any = result.map((item) => item.toJSON()).toJSON();

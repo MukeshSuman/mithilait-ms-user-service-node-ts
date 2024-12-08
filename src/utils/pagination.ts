@@ -2,7 +2,9 @@
 
 export type SortOrder = 'asc' | 'desc';
 
-export interface CommonFields {}
+export interface CommonFields {
+  fakeKey?: string
+}
 
 export type FilterFields = Partial<Record<keyof CommonFields, string>>;
 export type SortFields = Partial<Record<keyof CommonFields, SortOrder>>;
@@ -22,7 +24,7 @@ export interface PaginationQueryForSwagger {
   downloadTotalItems?: number | string; // if list
 }
 
-export interface PaginationQuery<F = {}, S = {}> {
+export interface PaginationQuery<F = any, S = any> {
   pageNumber: number;
   pageSize: number;
   query?: string;
