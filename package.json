@@ -9,9 +9,11 @@
 		"build": "tsc",
 		"prebuild": "tsoa spec-and-routes",
 		"test": "jest",
-		"swagger": "tsoa spec-and-routes"
+		"swagger": "tsoa spec-and-routes",
+		"lint": "eslint ."
 	},
 	"dependencies": {
+		"@eslint/compat": "^1.2.4",
 		"bcrypt": "^5.1.0",
 		"chalk": "^4.1.2",
 		"cors": "^2.8.5",

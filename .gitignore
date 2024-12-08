@@ -144,3 +144,5 @@ src/routes/routes.*
 
 # downloads
 downloads/*
+
+ecosystem.config.js
