@@ -17,4 +17,4 @@ type IApiErrorsType = {
   NotFound: IApiError;
 };
 
-export interface IApiErrors extends IApiErrorsType {}
+export interface IApiErrors extends IApiErrorsType{}

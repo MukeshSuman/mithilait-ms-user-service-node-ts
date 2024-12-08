@@ -1,5 +1,4 @@
-import { IUser, UserRole } from '../models/userModel';
-import { PaginationQuery, PaginationResult } from '../utils/pagination';
+import { IUser } from '../models/userModel';
 import { IBaseService } from './IBaseService';
 
 export interface IUserService extends IBaseService<IUser> {

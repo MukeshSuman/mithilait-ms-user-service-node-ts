@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { ApiError, ApiResponse } from '../utils/apiResponse';
 import { logger } from '../config/logger';
 // import { date } from 'joi';
@@ -9,7 +9,7 @@ export const errorHandler = (
   err: Error,
   req: Request,
   res: Response,
-  // next: NextFunction
+  next: NextFunction
 ) => {
   logger.error(err.stack);
 
@@ -88,6 +88,7 @@ export const errorHandler = (
       );
   }
 
+  next('An unexpected error occurred')
   // Handle unknown errors
   return res
     .status(500)

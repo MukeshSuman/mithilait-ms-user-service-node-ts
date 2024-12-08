@@ -29,7 +29,8 @@ export const authMiddleware = (roles?: UserRole[]) => {
       }
 
       next();
-    } catch (error) {
+    } catch (error: any) {
+      console.log('error', error)
       next(new ApiError(ApiErrors.UnAuthorized));
     }
   };
@@ -37,8 +38,8 @@ export const authMiddleware = (roles?: UserRole[]) => {
 
 export function expressAuthentication(
   request: any,
-  securityName: string,
-  scopes?: string[]
+  // securityName: string,
+  // scopes?: string[]
 ) {
   // Your authentication logic here
   // ...

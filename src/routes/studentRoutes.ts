@@ -7,7 +7,6 @@ import {
   updateStudentSchema,
 } from '../validators/userValidator';
 import { IUser, UserRole } from '../models/userModel';
-import { ApiError } from '../utils/apiResponse';
 import { errorHandler } from '../middlewares/errorHandler';
 import multer from 'multer';
 import path from 'path';
@@ -22,11 +21,11 @@ const fileFilter = (req: Request, file: any, cb: any) => {
   const fileExtension = path.extname(file.originalname).toLowerCase();
 
   // Allowed MIME types for CSV, XLS, and XLSX
-  const allowedMimeTypes = [
-    'text/csv',
-    'application/vnd.ms-excel',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  ];
+  // const allowedMimeTypes = [
+  //   'text/csv',
+  //   'application/vnd.ms-excel',
+  //   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  // ];
 
   // Check both file extension and MIME type
   if (
@@ -66,7 +65,7 @@ router.post(
         req.user as IUser
       );
       res.json(result);
-    } catch (error: ApiError | any) {
+    } catch (error: any) {
       errorHandler(error, req, res, next);
     }
   }
@@ -84,7 +83,7 @@ router.put(
         req.user as IUser
       );
       res.json(result);
-    } catch (error: ApiError | any) {
+    } catch (error: any) {
       errorHandler(error, req, res, next);
     }
   }
@@ -96,7 +95,7 @@ router.delete(
     try {
       const result = await studentController.delete(req.params.id);
       res.json(result);
-    } catch (error: ApiError | any) {
+    } catch (error:  any) {
       errorHandler(error, req, res, next);
     }
   }
@@ -111,7 +110,7 @@ router.get(
         req.user as IUser
       );
       res.json(result);
-    } catch (error: ApiError | any) {
+    } catch (error:  any) {
       errorHandler(error, req, res, next);
     }
   }
@@ -126,7 +125,7 @@ router.get(
         req.user as IUser
       );
       res.json(result);
-    } catch (error: ApiError | any) {
+    } catch (error:  any) {
       errorHandler(error, req, res, next);
     }
   }
@@ -146,7 +145,7 @@ router.post(
         req.user as IUser
       );
       res.json(result);
-    } catch (error: ApiError | any) {
+    } catch (error:  any) {
       errorHandler(error, req, res, next);
     }
   }

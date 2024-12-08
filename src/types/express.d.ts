@@ -1,4 +1,5 @@
 // Define your User type (or import it from your models)
+
 interface User {
   id: string;
   role: string;
@@ -13,5 +14,11 @@ declare global {
     interface Request {
       user?: User; // Use the correct type for your user object
     }
+  }
+}
+
+declare namespace Express {
+  export interface Request {
+    user: any
   }
 }

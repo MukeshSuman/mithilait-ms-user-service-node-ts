@@ -1,10 +1,9 @@
-import express, { Request, Response, NextFunction } from 'express';
+import express from 'express';
 import { TopicController } from '../controllers/topicController';
 import { authMiddleware } from '../middlewares/authMiddleware';
 import { validate } from '../middlewares/validate';
 import { createTopicSchema, updateTopicSchema } from '../validators';
 import { IUser, UserRole } from '../models/userModel';
-import { ApiError } from '../utils/apiResponse';
 import { errorHandler } from '../middlewares/errorHandler';
 
 const router = express.Router();
@@ -18,7 +17,7 @@ router.post(
     try {
       const result = await topicController.create(req.body, req.user as IUser);
       res.json(result);
-    } catch (error: ApiError | any) {
+    } catch (error: any) {
       errorHandler(error, req, res, next);
     }
   }
@@ -34,7 +33,7 @@ router.get(
         req.user as IUser
       );
       res.json(result);
-    } catch (error: ApiError | any) {
+    } catch (error: any) {
       errorHandler(error, req, res, next);
     }
   }
@@ -53,7 +52,7 @@ router.put(
         req.user as IUser
       );
       res.json(result);
-    } catch (error: ApiError | any) {
+    } catch (error: any) {
       errorHandler(error, req, res, next);
     }
   }
@@ -68,7 +67,7 @@ router.delete(
         req.user as IUser
       );
       res.json(result);
-    } catch (error: ApiError | any) {
+    } catch (error: any) {
       errorHandler(error, req, res, next);
     }
   }
@@ -83,7 +82,7 @@ router.get(
         req.user as IUser
       );
       res.json(result);
-    } catch (error: ApiError | any) {
+    } catch (error: any) {
       errorHandler(error, req, res, next);
     }
   }
@@ -99,7 +98,7 @@ router.get(
         req.user as IUser
       );
       res.json(result);
-    } catch (error: ApiError | any) {
+    } catch (error: any) {
       errorHandler(error, req, res, next);
     }
   }

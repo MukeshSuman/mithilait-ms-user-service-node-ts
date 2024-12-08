@@ -7,7 +7,6 @@ import {
   updateSchoolSchema,
 } from '../validators/userValidator';
 import { IUser, UserRole } from '../models/userModel';
-import { ApiError } from '../utils/apiResponse';
 import { errorHandler } from '../middlewares/errorHandler';
 
 const router = express.Router();
@@ -21,7 +20,7 @@ router.post(
     try {
       const result = await schoolController.create(req.body, req.user as IUser);
       res.json(result);
-    } catch (error: ApiError | any) {
+    } catch (error: any) {
       errorHandler(error, req, res, next);
     }
   }
@@ -39,7 +38,7 @@ router.put(
         req.user as IUser
       );
       res.json(result);
-    } catch (error: ApiError | any) {
+    } catch (error: any) {
       errorHandler(error, req, res, next);
     }
   }
@@ -51,7 +50,7 @@ router.delete(
     try {
       const result = await schoolController.delete(req.params.id);
       res.json(result);
-    } catch (error: ApiError | any) {
+    } catch (error: any) {
       errorHandler(error, req, res, next);
     }
   }
@@ -66,7 +65,7 @@ router.get(
         req.user as IUser
       );
       res.json(result);
-    } catch (error: ApiError | any) {
+    } catch (error: any) {
       errorHandler(error, req, res, next);
     }
   }
@@ -81,7 +80,7 @@ router.get(
         req.user as IUser
       );
       res.json(result);
-    } catch (error: ApiError | any) {
+    } catch (error: any) {
       errorHandler(error, req, res, next);
     }
   }

@@ -4,7 +4,6 @@ import { authMiddleware } from '../middlewares/authMiddleware';
 import { validate } from '../middlewares/validate';
 import { createExamSchema, updateExamSchema } from '../validators';
 import { IUser, UserRole } from '../models/userModel';
-import { ApiError } from '../utils/apiResponse';
 import { errorHandler } from '../middlewares/errorHandler';
 import {
   audioUpload,
@@ -38,7 +37,7 @@ router.post(
     try {
       const result = await examController.create(req.body, req.user as IUser);
       res.json(result);
-    } catch (error: ApiError | any) {
+    } catch (error: any) {
       errorHandler(error, req, res, next);
     }
   }
@@ -56,7 +55,7 @@ router.put(
         req.user as IUser
       );
       res.json(result);
-    } catch (error: ApiError | any) {
+    } catch (error: any) {
       errorHandler(error, req, res, next);
     }
   }
@@ -71,7 +70,7 @@ router.delete(
         req.user as IUser
       );
       res.json(result);
-    } catch (error: ApiError | any) {
+    } catch (error: any) {
       errorHandler(error, req, res, next);
     }
   }
@@ -86,7 +85,7 @@ router.get(
         req.user as IUser
       );
       res.json(result);
-    } catch (error: ApiError | any) {
+    } catch (error: any) {
       errorHandler(error, req, res, next);
     }
   }
@@ -106,7 +105,7 @@ router.post(
         req.user as IUser
       );
       res.json(result);
-    } catch (error: ApiError | any) {
+    } catch (error: any) {
       errorHandler(error, req, res, next);
     }
   }
@@ -122,7 +121,7 @@ router.get(
       const type = req.query.type || '';
       let isPractice = false;
 
-      if (req.query.hasOwnProperty('isPractice')) {
+      if (Object.prototype.hasOwnProperty.call(req.query, 'isPractice')) {
         isPractice = toBoolean(req.query.isPractice);
       }
 
@@ -135,7 +134,7 @@ router.get(
         req.user as IUser
       );
       res.json(result);
-    } catch (error: ApiError | any) {
+    } catch (error: any) {
       errorHandler(error, req, res, next);
     }
   }
@@ -153,7 +152,7 @@ router.get(
         req.user as IUser
       );
       res.json(result);
-    } catch (error: ApiError | any) {
+    } catch (error: any) {
       errorHandler(error, req, res, next);
     }
   }
@@ -171,7 +170,7 @@ router.get(
         req.user as IUser
       );
       res.json(result);
-    } catch (error: ApiError | any) {
+    } catch (error: any) {
       errorHandler(error, req, res, next);
     }
   }
